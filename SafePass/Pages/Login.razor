@@ -2,6 +2,7 @@
 @using SafePass.Data
 @inject UserService UserService
 @inject NavigationManager NavigationManager
+
 <h3>Login</h3>
 
 @if (isLoading)
@@ -18,18 +19,19 @@
     <div class="form-group">
         <label for="username">Username/Email</label>
         <InputText id="username" @bind-Value="loginModel.UserName" class="form-control" />
+        <ValidationMessage For="@(() => loginModel.UserName)" />
     </div>
 
     <div class="form-group">
         <label for="password">Password</label>
         <InputText id="password" @bind-Value="loginModel.Password" class="form-control" type="password" />
+        <ValidationMessage For="@(() => loginModel.Password)" />
     </div>
 
     <button class="btn btn-primary" type="submit">
         Login
     </button>
 </EditForm>
-
 
 @if (errorMessage != null)
 {
@@ -43,32 +45,31 @@
 
     private async Task HandleLogin()
     {
-        Console.WriteLine("HandleLogin triggered");
-
-        errorMessage = null;
-
-        if (string.IsNullOrEmpty(loginModel.UserName) || string.IsNullOrEmpty(loginModel.Password))
+        try
         {
-            errorMessage = "Please fill in both fields.";
-            Console.WriteLine("Fields are empty");
-            return;
+            errorMessage = null;
+
+            Console.WriteLine("HandleLogin triggered");
+
+            Console.WriteLine($"Username: {loginModel.UserName}, Password: {loginModel.Password}");
+
+            var user = await UserService.ValidateUserAsync(loginModel.UserName, loginModel.Password);
+
+            if (user != null)
+            {
+                Console.WriteLine("Login successful. Redirecting to /dashboard...");
+                NavigationManager.NavigateTo("/dashboard");
+            }
+            else
+            {
+                Console.WriteLine("Login failed: Invalid username or password.");
+                errorMessage = "Invalid username or password.";
+            }
         }
-
-        Console.WriteLine($"Username: {loginModel.UserName}, Password: {loginModel.Password}");
-
-        var user = await UserService.ValidateUserAsync(loginModel.UserName, loginModel.Password);
-
-        if (user != null)
+        catch (Exception ex)
         {
-            Console.WriteLine("Login successful. Redirecting to /counter...");
-            NavigationManager.NavigateTo("/dashboard");
-        }
-        else
-        {
-            Console.WriteLine("Login failed: Invalid username or password.");
-            errorMessage = "Invalid username or password.";
+            errorMessage = $"An error occurred: {ex.Message}";
+            Console.WriteLine($"Exception in HandleLogin: {ex}");
         }
     }
-}
-
 }
