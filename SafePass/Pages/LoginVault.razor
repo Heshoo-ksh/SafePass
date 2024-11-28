@@ -1,0 +1,55 @@
+﻿@page "/LoginVault"
+@using SafePass.Data
+@using SafePass.Services
+@using MudBlazor
+@inject LoginService LoginService
+
+
+<MudTable Items="@Logins" Filter="new Func<Login,bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Login Vault</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Id</MudTh>
+        <MudTh>Username</MudTh>
+        <MudTh>Passsword</MudTh>
+        <MudTh>URL</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id">@context.Id</MudTd>
+        <MudTd DataLabel="Username">@context.Username</MudTd>
+        <MudTd DataLabel="Password">@context.Password</MudTd>
+        <MudTd DataLabel="URL">@context.URL</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+
+@code {
+    private string searchString1 = "";
+    private IEnumerable<Login> Logins = new List<Login>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logins = await LoginService.GetAllLogins();
+    }
+
+    private bool FilterFunc1(Login login) => FilterFunc(login, searchString1);
+
+    private bool FilterFunc(Login login, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (login.Username.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (login.URL.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{login.Username} {login.Password} {login.URL}".Contains(searchString))
+            return true;
+        return false;
+    }
+}
