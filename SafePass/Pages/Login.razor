@@ -1,0 +1,74 @@
+﻿@page "/login"
+@using SafePass.Data
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+<h3>Login</h3>
+
+@if (isLoading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+}
+
+<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="username">Username/Email</label>
+        <InputText id="username" @bind-Value="loginModel.UserName" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <InputText id="password" @bind-Value="loginModel.Password" class="form-control" type="password" />
+    </div>
+
+    <button class="btn btn-primary" type="submit">
+        Login
+    </button>
+</EditForm>
+
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
+@code {
+    private User loginModel = new User();
+    private string? errorMessage;
+    private bool isLoading = false;
+
+    private async Task HandleLogin()
+    {
+        Console.WriteLine("HandleLogin triggered");
+
+        errorMessage = null;
+
+        if (string.IsNullOrEmpty(loginModel.UserName) || string.IsNullOrEmpty(loginModel.Password))
+        {
+            errorMessage = "Please fill in both fields.";
+            Console.WriteLine("Fields are empty");
+            return;
+        }
+
+        Console.WriteLine($"Username: {loginModel.UserName}, Password: {loginModel.Password}");
+
+        var user = await UserService.ValidateUserAsync(loginModel.UserName, loginModel.Password);
+
+        if (user != null)
+        {
+            Console.WriteLine("Login successful. Redirecting to /counter...");
+            NavigationManager.NavigateTo("/dashboard");
+        }
+        else
+        {
+            Console.WriteLine("Login failed: Invalid username or password.");
+            errorMessage = "Invalid username or password.";
+        }
+    }
+}
+
+}
