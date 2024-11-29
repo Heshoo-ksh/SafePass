@@ -1,0 +1,67 @@
+﻿@using SafePass.Proxies
+@using SafePass.Data
+@using SafePass.Services
+@using MudBlazor
+@inject IDialogService DialogService
+@inject LoginService loginService
+
+<MudDialog Class="mud-width-full mud-max-width-lg mud-dialog">
+     <DialogContent>
+          <EditForm Model="login" OnValidSubmit="SaveLogin" OnFieldChanged="ValidateForm">
+               <DataAnnotationsValidator />
+               <MudTextField Class="p-2" Label="Name" @bind-Value="login.Name" For="@(() => login.Name)" Required="true" RequiredError="Name is required." />
+               <MudTextField Class="p-2" Label="Username" @bind-Value="login.Username" For="@(() => login.Username)" Required="true" RequiredError="Username is required." />
+               <MudTextField Class="p-2" Label="Password" @bind-Value="login.Password" For="@(() => login.Password)" Required="true" RequiredError="Password is required." />
+               <MudTextField Class="p-2" Label="URL" @bind-Value="login.URL" For="@(() => login.URL)" Required="true" RequiredError="URL is required." />
+               <ValidationSummary />
+          </EditForm>
+     </DialogContent>
+     <DialogActions>
+          <MudButton Variant="Variant.Filled" Color="Color.Primary" Type="submit" Disabled="ValidateForm()">Save</MudButton>
+          <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+     </DialogActions>
+</MudDialog>
+
+@code {
+     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+     [Parameter] public Login login { get; set; }
+     private bool isSaveDisabled = true; // Initially disabled
+
+     protected override void OnInitialized()
+     {
+          if (login == null)
+          {
+               login = new Login(); // Create a new instance if none is provided
+          }
+     }
+
+     private async Task SaveLogin()
+     {
+          if (login.Id == Guid.Empty) // Add
+          {
+               login.Id = Guid.NewGuid(); // Assign a new ID
+               await loginService.CreateLogin(login);
+          }
+          else // Edit
+          {
+               await loginService.UpdateLogin(login);
+          }
+          MudDialog.Close(DialogResult.Ok(true));
+     }
+
+     private void Cancel()
+     {
+          MudDialog.Cancel();
+     }
+
+     private bool ValidateForm()
+     {
+          // Check if all required fields are filled
+          return  string.IsNullOrWhiteSpace(login.Name) ||
+                           string.IsNullOrWhiteSpace(login.Username) ||
+                           string.IsNullOrWhiteSpace(login.Password) ||
+                           string.IsNullOrWhiteSpace(login.URL);
+     }
+}
+
