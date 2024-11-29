@@ -29,11 +29,11 @@ namespace SafePass.Services
                }
           }
 
-          public async Task UpdateLogin(Login Login)
+          public async Task UpdateLogin(Login login)
           {
                using (var context = dbContextFactory.CreateDbContext())
                {
-                    context.Logins.Update(Login);
+                    context.Logins.Update(login);
                     await context.SaveChangesAsync();
                }
           }
@@ -42,10 +42,10 @@ namespace SafePass.Services
           {
                using (var context = dbContextFactory.CreateDbContext())
                {
-                    var Login = await context.Logins.FindAsync(id);
-                    if (Login != null)
+                    var login = await context.Logins.FindAsync(id);
+                    if (login != null)
                     {
-                         context.Logins.Remove(Login);
+                         context.Logins.Remove(login);
                          await context.SaveChangesAsync();
                     }
                }
