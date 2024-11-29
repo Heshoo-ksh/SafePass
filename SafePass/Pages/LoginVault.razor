@@ -14,23 +14,28 @@
           vertical-align: middle; /* Vertically align the content */
           padding: 0;
      }
+
 </style>
 
 <MudTable Items="@LoginProxies" Hover Dense Striped Filter="new Func<LoginProxy,bool>(FilterFunc1)">
      <ToolBarContent>
           <MudText Typo="Typo.h6">Login Vault</MudText>
           <MudSpacer />
-          <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-     </ToolBarContent>
+          <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 me-3"></MudTextField>
+          <MudButton StartIcon="@Icons.Material.Filled.Add" Class="text-lg font-bold pt-2"
+               Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddModal">ADD
+          </MudButton>
+
+      </ToolBarContent>
 
      <HeaderContent>
           <MudTh Class="compact-column">Delete</MudTh>
           <MudTh Class="compact-column">Edit</MudTh>
           <MudTh Class="compact-column">Mask</MudTh>
-          <MudTh>Name</MudTh>
+          <MudTh><MudTableSortLabel SortBy="new Func<LoginProxy, object>(x => x.Name)">Name</MudTableSortLabel></MudTh>
           <MudTh>Username</MudTh>
           <MudTh>Password</MudTh>
-          <MudTh>URL</MudTh>
+          <MudTh><MudTableSortLabel SortBy="new Func<LoginProxy, object>(x => x.URL)">URL</MudTableSortLabel></MudTh>
      </HeaderContent>
 
      <RowTemplate>
@@ -66,6 +71,17 @@
           await FetchTable();
      }
 
+     private async Task OpenAddModal()
+     {
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small, CloseOnEscapeKey = true };
+          var dialog = DialogService.Show<LoginModal>("Add Login", options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+               await FetchTable();
+          }
+     }
      private async Task OpenEditModal(LoginProxy loginProxy)
      {
           ToggleUnmask(loginProxy);
