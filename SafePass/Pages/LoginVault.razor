@@ -1,11 +1,22 @@
 ﻿@page "/LoginVault"
-@using SafePass.Data
+@using SafePass.Proxies
 @using SafePass.Services
 @using MudBlazor
 @inject LoginService LoginService
 @inject IDialogService DialogService
 
-<MudTable Items="@Logins" Filter="new Func<Login,bool>(FilterFunc1)">
+<style>
+     .compact-column {
+          width: 50px; 
+          text-align: center; /* Horizontally center the content */
+          vertical-align: middle; /* Vertically align the content */
+          padding: 0;
+     }
+</style>
+
+
+
+<MudTable Items="@LoginProxies" Hover Dense Striped Filter="new Func<LoginProxy,bool>(FilterFunc1)">
      <ToolBarContent>
           <MudText Typo="Typo.h6">Login Vault</MudText>
           <MudSpacer />
@@ -13,21 +24,25 @@
      </ToolBarContent>
 
      <HeaderContent>
+          <MudTh Class="compact-column">Delete</MudTh>
+          <MudTh Class="compact-column">Mask</MudTh>
           <MudTh>Name</MudTh>
           <MudTh>Username</MudTh>
           <MudTh>Password</MudTh>
           <MudTh>URL</MudTh>
-          <MudTh>Actions</MudTh>
      </HeaderContent>
 
      <RowTemplate>
+          <MudTd>
+               <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Large" OnClick="() => OpenDeleteDialog(context.Id, context.Name)" />
+          </MudTd>
+          <MudTd>
+               <MudIconButton Icon="@GetEyeIcon(context.IsUnmasked)" Color="Color.Primary" Size="Size.Large" OnClick="() => ToggleUnmask(context)" />
+          </MudTd>
           <MudTd DataLabel="Name">@context.Name</MudTd>
           <MudTd DataLabel="Username">@context.Username</MudTd>
           <MudTd DataLabel="Password">@context.Password</MudTd>
           <MudTd DataLabel="URL">@context.URL</MudTd>
-          <MudTd>
-               <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => OpenDeleteDialog(context.Id, context.Name)" />
-          </MudTd>
      </RowTemplate>
 
      <PagerContent>
@@ -37,12 +52,15 @@
 
 @code {
      private string searchString1 = "";
-     private IEnumerable<Login> Logins = new List<Login>();
-     private Guid deleteId;
+     private List<LoginProxy> LoginProxies = new List<LoginProxy>();
+
+     // Keep track of the currently unmasked row
+     private LoginProxy currentlyUnmaskedProxy;
 
      protected override async Task OnInitializedAsync()
      {
-          Logins = await LoginService.GetAllLogins();
+          var logins = await LoginService.GetAllLogins();
+          LoginProxies = logins.Select(login => new LoginProxy(login)).ToList();
      }
 
      private async Task OpenDeleteDialog(Guid id, string name)
@@ -50,7 +68,7 @@
           var parameters = new DialogParameters
             {
                 { "DeleteId", id },
-                { "Message", $"Are you sure you want to delete the login record for '{name}'?" } // Pass custom message
+                { "Message", $"Are you sure you want to delete the login record for '{name}'?" }
             };
 
           var options = new DialogOptions() { MaxWidth = MaxWidth.Small };
@@ -59,26 +77,54 @@
 
           if (!result.Canceled)
           {
-               // Refresh the data
-               Logins = await LoginService.GetAllLogins();
+               var logins = await LoginService.GetAllLogins();
+               LoginProxies = logins.Select(login => new LoginProxy(login)).ToList();
+               currentlyUnmaskedProxy = null; // Reset the unmasked proxy
           }
      }
 
+     private bool FilterFunc1(LoginProxy loginProxy) => FilterFunc(loginProxy, searchString1);
 
-     private bool FilterFunc1(Login login) => FilterFunc(login, searchString1);
-
-     private bool FilterFunc(Login login, string searchString)
+     private bool FilterFunc(LoginProxy loginProxy, string searchString)
      {
           if (string.IsNullOrWhiteSpace(searchString))
                return true;
-          if (login.Username.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+          if (loginProxy.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
                return true;
-          if (login.URL.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+          if (loginProxy.Username.Contains(searchString, StringComparison.OrdinalIgnoreCase))
                return true;
-          if (login.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-               return true;
-          if ($"{login.Name} {login.Username} {login.Password} {login.URL}".Contains(searchString))
+          if (loginProxy.URL.Contains(searchString, StringComparison.OrdinalIgnoreCase))
                return true;
           return false;
+     }
+
+     private void ToggleUnmask(LoginProxy loginProxy)
+     {
+          if (currentlyUnmaskedProxy != null && currentlyUnmaskedProxy != loginProxy)
+          {
+               // Mask the previously unmasked row
+               currentlyUnmaskedProxy.IsUnmasked = false;
+          }
+
+          if (currentlyUnmaskedProxy == loginProxy)
+          {
+               // If clicking the same row, toggle its state
+               loginProxy.IsUnmasked = !loginProxy.IsUnmasked;
+               if (!loginProxy.IsUnmasked)
+               {
+                    currentlyUnmaskedProxy = null;
+               }
+          }
+          else
+          {
+               // Unmask the new row
+               loginProxy.IsUnmasked = true;
+               currentlyUnmaskedProxy = loginProxy;
+          }
+     }
+
+     private string GetEyeIcon(bool isUnmasked)
+     {
+          return isUnmasked ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
      }
 }
