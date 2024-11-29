@@ -12,7 +12,7 @@ namespace SafePass.Services
                this.dbContextFactory = dbContextFactory;
           }
 
-          public async void CreateLogin(Login login)
+          public async Task CreateLogin(Login login)
           {
                using (var context = dbContextFactory.CreateDbContext())
                {

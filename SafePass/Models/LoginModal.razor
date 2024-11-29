@@ -1,0 +1,44 @@
+﻿@using SafePass.Proxies
+@using SafePass.Data
+@using SafePass.Services
+@using MudBlazor
+@inject IDialogService DialogService
+@inject LoginService loginService
+
+<MudDialog>
+     <DialogContent>
+          <MudTextField Label="Name" @bind-Value="login.Name" />
+          <MudTextField Label="Username" @bind-Value="login.Username" />
+          <MudTextField Label="Password" @bind-Value="login.Password" />
+          <MudTextField Label="URL" @bind-Value="login.URL" />
+     </DialogContent>
+     <DialogActions>
+          <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveLogin">Save</MudButton>
+          <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+     </DialogActions>
+</MudDialog>
+
+
+@code {
+     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+     [Parameter] public Login login { get; set; }
+
+     private async Task SaveLogin()
+     {
+          if (login.Id == Guid.Empty) // Add
+          {
+               await loginService.CreateLogin(login);
+          }
+          else // Edit
+          {
+               await loginService.UpdateLogin(login);
+          }
+          MudDialog.Close(DialogResult.Ok(true));
+     }
+
+     private void Cancel()
+     {
+          MudDialog.Cancel();
+     }    
+}

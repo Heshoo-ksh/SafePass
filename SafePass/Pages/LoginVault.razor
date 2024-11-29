@@ -2,6 +2,8 @@
 @using SafePass.Proxies
 @using SafePass.Services
 @using MudBlazor
+@using SafePass.Models
+@using SafePass.Data
 @inject LoginService LoginService
 @inject IDialogService DialogService
 
@@ -14,8 +16,6 @@
      }
 </style>
 
-
-
 <MudTable Items="@LoginProxies" Hover Dense Striped Filter="new Func<LoginProxy,bool>(FilterFunc1)">
      <ToolBarContent>
           <MudText Typo="Typo.h6">Login Vault</MudText>
@@ -25,6 +25,7 @@
 
      <HeaderContent>
           <MudTh Class="compact-column">Delete</MudTh>
+          <MudTh Class="compact-column">Edit</MudTh>
           <MudTh Class="compact-column">Mask</MudTh>
           <MudTh>Name</MudTh>
           <MudTh>Username</MudTh>
@@ -35,6 +36,9 @@
      <RowTemplate>
           <MudTd>
                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Large" OnClick="() => OpenDeleteDialog(context.Id, context.Name)" />
+          </MudTd>
+          <MudTd Class="compact-column">
+               <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenEditModal(context)" />
           </MudTd>
           <MudTd>
                <MudIconButton Icon="@GetEyeIcon(context.IsUnmasked)" Color="Color.Primary" Size="Size.Large" OnClick="() => ToggleUnmask(context)" />
@@ -59,8 +63,40 @@
 
      protected override async Task OnInitializedAsync()
      {
-          var logins = await LoginService.GetAllLogins();
-          LoginProxies = logins.Select(login => new LoginProxy(login)).ToList();
+          await FetchTable();
+     }
+
+     private async Task OpenEditModal(LoginProxy loginProxy)
+     {
+          ToggleUnmask(loginProxy);
+          var parameters = new DialogParameters
+            {
+                { "login", ConvertToLogin(loginProxy) } // Pass the undelying Login
+            };
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small, CloseOnEscapeKey = true };
+          var dialog = DialogService.Show<LoginModal>("Edit Login", parameters, options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+               await FetchTable();
+          }
+          else
+          {
+               ToggleUnmask(loginProxy);
+          }
+     }
+     
+     public Login ConvertToLogin(LoginProxy proxy)
+     {
+          return new Login
+               {
+                    Id = proxy.Id,
+                    Name = proxy.Name,
+                    Username = proxy.Username,
+                    Password = proxy.Password,
+                    URL = proxy.URL
+               };
      }
 
      private async Task OpenDeleteDialog(Guid id, string name)
@@ -77,8 +113,7 @@
 
           if (!result.Canceled)
           {
-               var logins = await LoginService.GetAllLogins();
-               LoginProxies = logins.Select(login => new LoginProxy(login)).ToList();
+               await FetchTable();
                currentlyUnmaskedProxy = null; // Reset the unmasked proxy
           }
      }
@@ -127,4 +162,11 @@
      {
           return isUnmasked ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
      }
+     
+     private async Task FetchTable()
+     {
+          var logins = await LoginService.GetAllLogins();
+          LoginProxies = logins.Select(login => new LoginProxy(login)).ToList();
+     }
+
 }
