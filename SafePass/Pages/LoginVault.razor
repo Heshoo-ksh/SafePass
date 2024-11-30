@@ -64,7 +64,7 @@
      private List<LoginProxy> LoginProxies = new List<LoginProxy>();
 
      // Keep track of the currently unmasked row
-     private LoginProxy currentlyUnmaskedProxy;
+     private LoginProxy ? currentlyUnmaskedProxy;
 
      protected override async Task OnInitializedAsync()
      {
@@ -103,17 +103,18 @@
           }
      }
      
-     public Login ConvertToLogin(LoginProxy proxy)
-     {
-          return new Login
-               {
-                    Id = proxy.Id,
-                    Name = proxy.Name,
-                    Username = proxy.Username,
-                    Password = proxy.Password,
-                    URL = proxy.URL
-               };
-     }
+    public SafePass.Data.Login ConvertToLogin(LoginProxy proxy)
+    {
+        return new SafePass.Data.Login
+            {
+                Id = proxy.Id,
+                Name = proxy.Name,
+                Username = proxy.Username,
+                Password = proxy.Password,
+                URL = proxy.URL
+            };
+    }
+
 
      private async Task OpenDeleteDialog(Guid id, string name)
      {

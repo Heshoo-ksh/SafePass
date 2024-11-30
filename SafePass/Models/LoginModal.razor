@@ -36,19 +36,20 @@
           }
      }
 
-     private async Task SaveLogin()
-     {
-          if (login.Id == Guid.Empty) // Add
-          {
-               login.Id = Guid.NewGuid(); // Assign a new ID
-               await loginService.CreateLogin(login);
-          }
-          else // Edit
-          {
-               await loginService.UpdateLogin(login);
-          }
-          MudDialog.Close(DialogResult.Ok(true));
-     }
+    private async Task SaveLogin()
+    {
+        if (login.Id == Guid.Empty) // Add
+        {
+            login.Id = Guid.NewGuid(); // Assign a new ID
+            await loginService.CreateLogin(login);
+        }
+        else // Edit
+        {
+            await loginService.UpdateLogin(login);
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
 
      private void Cancel()
      {

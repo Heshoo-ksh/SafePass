@@ -10,9 +10,9 @@ using SafePass.Data;
 
 namespace SafePass.Migrations
 {
-    [DbContext(typeof(SafePassContext))]
-    [Migration("20241128201619_InitialCreate")]
-    partial class InitialCreate
+    [DbContext(typeof(UnifiedDbContext))]
+    [Migration("20241130223845_UnifiedMigration")]
+    partial class UnifiedMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,11 +53,36 @@ namespace SafePass.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Password")
                         .IsRequired()
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("URL")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Logins");
+                });
+
+            modelBuilder.Entity("SafePass.Data.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -67,7 +92,7 @@ namespace SafePass.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Logins");
+                    b.ToTable("Users");
                 });
 #pragma warning restore 612, 618
         }

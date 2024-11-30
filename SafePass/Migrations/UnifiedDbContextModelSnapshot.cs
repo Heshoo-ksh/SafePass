@@ -9,8 +9,8 @@ using SafePass.Data;
 
 namespace SafePass.Migrations
 {
-    [DbContext(typeof(SafePassContext))]
-    partial class SafePassContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(UnifiedDbContext))]
+    partial class UnifiedDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -50,11 +50,36 @@ namespace SafePass.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Password")
                         .IsRequired()
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("URL")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Logins");
+                });
+
+            modelBuilder.Entity("SafePass.Data.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -64,7 +89,7 @@ namespace SafePass.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Logins");
+                    b.ToTable("Users");
                 });
 #pragma warning restore 612, 618
         }
