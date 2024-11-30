@@ -2,55 +2,64 @@
 @using SafePass.Data
 @inject UserService UserService
 @inject NavigationManager NavigationManager
+@using MudBlazor
 
-<h3>Login</h3>
+<div style="display: flex; justify-content: center; align-items: center; height: 70vh;">
+    <MudCard Class="pa-4" Style="width: 400px;">
+        @if (isLoading)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto my-4" />
+        }
 
-@if (isLoading)
-{
-    <div class="spinner-border text-primary" role="status">
-        <span class="sr-only">Loading...</span>
-    </div>
-}
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="my-6 mx-4 animate__animated animate__fadeIn" Style="font-size: 2.5rem; font-family: 'Dancing Script', cursive;">Welcome Back</MudText>
 
-<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
 
-    <div class="form-group">
-        <label for="username">Username/Email</label>
-        <InputText id="username" @bind-Value="loginModel.UserName" class="form-control" />
-        <ValidationMessage For="@(() => loginModel.UserName)" />
-    </div>
 
-    <div class="form-group">
-        <label for="password">Password</label>
-        <InputText id="password" @bind-Value="loginModel.Password" class="form-control" type="password" />
-        <ValidationMessage For="@(() => loginModel.Password)" />
-    </div>
 
-    <button class="btn btn-primary" type="submit">
-        Login
-    </button>
-</EditForm>
+        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <!-- Username/Email field -->
+            <MudTextField Label="Username/Email" @bind-Value="loginModel.UserName" Required="true" FullWidth="true" Variant="Variant.Filled" Class="mb-3" />
 
-@if (errorMessage != null)
-{
-    <div class="alert alert-danger mt-3">@errorMessage</div>
-}
+            <!-- Password field -->
+            <MudTextField Label="Password" @bind-Value="loginModel.Password" InputType="InputType.Password" Required="true" FullWidth="true" Variant="Variant.Filled" Class="mb-3" />
+
+            <!-- Login button -->
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" ButtonType="ButtonType.Submit" Class="mt-3" FullWidth="true">Login</MudButton>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            switch (errorMessage)
+            {
+                case "Invalid username or password.":
+                    <MudAlert Severity="Severity.Warning" Class="mt-3 animate__animated animate__shakeX">Invalid username or password. Please try again.</MudAlert>
+                    break;
+                case var message when message.Contains("An error occurred"):
+                    <MudAlert Severity="Severity.Error" Class="mt-3 animate__animated animate__shakeX">An unexpected error occurred. Please contact support if the issue persists.</MudAlert>
+                    break;
+                default:
+                    <MudAlert Severity="Severity.Info" Class="mt-3 animate__animated animate__fadeIn">@errorMessage</MudAlert>
+                    break;
+            }
+        }
+
+    </MudCard>
+</div>
+
 
 @code {
     private User loginModel = new User();
-    private string? errorMessage;
+    private string errorMessage = string.Empty;
     private bool isLoading = false;
 
     private async Task HandleLogin()
     {
         try
         {
+            isLoading = true;
             errorMessage = null;
 
             Console.WriteLine("HandleLogin triggered");
-
             Console.WriteLine($"Username: {loginModel.UserName}, Password: {loginModel.Password}");
 
             var user = await UserService.ValidateUserAsync(loginModel.UserName, loginModel.Password);
@@ -70,6 +79,10 @@
         {
             errorMessage = $"An error occurred: {ex.Message}";
             Console.WriteLine($"Exception in HandleLogin: {ex}");
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 }
