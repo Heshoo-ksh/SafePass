@@ -1,0 +1,32 @@
+﻿@using SafePass.Data
+@using SafePass.Services
+@using MudBlazor
+@inject IDialogService DialogService
+@inject LoginService LoginService
+
+<MudDialog>
+     <DialogContent>
+          <MudText Typo="Typo.subtitle1">@Message</MudText>
+     </DialogContent>
+     <DialogActions>
+          <MudButton OnClick="DeleteConfirmed" Color="Color.Error">Delete</MudButton>
+          <MudButton OnClick="Cancel" Color="Color.Primary">Cancel</MudButton>
+     </DialogActions>
+</MudDialog>
+
+@code {
+     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+     [Parameter] public Guid DeleteId { get; set; }
+     [Parameter] public string Message { get; set; } 
+
+     private async Task DeleteConfirmed()
+     {
+          await LoginService.DeleteLogin(DeleteId);
+          MudDialog.Close(DialogResult.Ok(true));
+     }
+
+     private void Cancel()
+     {
+          MudDialog.Cancel();
+     }
+}

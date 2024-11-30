@@ -1,0 +1,188 @@
+﻿@page "/LoginVault"
+@using SafePass.Proxies
+@using SafePass.Services
+@using MudBlazor
+@using SafePass.Models
+@using SafePass.Data
+@inject LoginService LoginService
+@inject IDialogService DialogService
+
+<style>
+     .compact-column {
+          width: 50px; 
+          text-align: center; /* Horizontally center the content */
+          vertical-align: middle; /* Vertically align the content */
+          padding: 0;
+     }
+
+</style>
+
+<MudTable Items="@LoginProxies" Hover Dense Striped Filter="new Func<LoginProxy,bool>(FilterFunc1)">
+     <ToolBarContent>
+          <MudText Typo="Typo.h6">Login Vault</MudText>
+          <MudSpacer />
+          <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 me-3"></MudTextField>
+          <MudButton StartIcon="@Icons.Material.Filled.Add" Class="text-lg font-bold pt-2"
+               Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddModal">ADD
+          </MudButton>
+
+      </ToolBarContent>
+
+     <HeaderContent>
+          <MudTh Class="compact-column">Delete</MudTh>
+          <MudTh Class="compact-column">Edit</MudTh>
+          <MudTh Class="compact-column">Mask</MudTh>
+          <MudTh><MudTableSortLabel SortBy="new Func<LoginProxy, object>(x => x.Name)">Name</MudTableSortLabel></MudTh>
+          <MudTh>Username</MudTh>
+          <MudTh>Password</MudTh>
+          <MudTh><MudTableSortLabel SortBy="new Func<LoginProxy, object>(x => x.URL)">URL</MudTableSortLabel></MudTh>
+     </HeaderContent>
+
+     <RowTemplate>
+          <MudTd>
+               <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Large" OnClick="() => OpenDeleteDialog(context.Id, context.Name)" />
+          </MudTd>
+          <MudTd Class="compact-column">
+               <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenEditModal(context)" />
+          </MudTd>
+          <MudTd>
+               <MudIconButton Icon="@GetEyeIcon(context.IsUnmasked)" Color="Color.Primary" Size="Size.Large" OnClick="() => ToggleUnmask(context)" />
+          </MudTd>
+          <MudTd DataLabel="Name">@context.Name</MudTd>
+          <MudTd DataLabel="Username">@context.Username</MudTd>
+          <MudTd DataLabel="Password">@context.Password</MudTd>
+          <MudTd DataLabel="URL">@context.URL</MudTd>
+     </RowTemplate>
+
+     <PagerContent>
+          <MudTablePager />
+     </PagerContent>
+</MudTable>
+
+@code {
+     private string searchString1 = "";
+     private List<LoginProxy> LoginProxies = new List<LoginProxy>();
+
+     // Keep track of the currently unmasked row
+     private LoginProxy currentlyUnmaskedProxy;
+
+     protected override async Task OnInitializedAsync()
+     {
+          await FetchTable();
+     }
+
+     private async Task OpenAddModal()
+     {
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small, CloseOnEscapeKey = true };
+          var dialog = DialogService.Show<LoginModal>("Add Login", options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+               await FetchTable();
+          }
+     }
+     private async Task OpenEditModal(LoginProxy loginProxy)
+     {
+          ToggleUnmask(loginProxy);
+          var parameters = new DialogParameters
+            {
+                { "login", ConvertToLogin(loginProxy) } // Pass the undelying Login
+            };
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small, CloseOnEscapeKey = true };
+          var dialog = DialogService.Show<LoginModal>("Edit Login", parameters, options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+               await FetchTable();
+          }
+          else
+          {
+               ToggleUnmask(loginProxy);
+          }
+     }
+     
+     public Login ConvertToLogin(LoginProxy proxy)
+     {
+          return new Login
+               {
+                    Id = proxy.Id,
+                    Name = proxy.Name,
+                    Username = proxy.Username,
+                    Password = proxy.Password,
+                    URL = proxy.URL
+               };
+     }
+
+     private async Task OpenDeleteDialog(Guid id, string name)
+     {
+          var parameters = new DialogParameters
+            {
+                { "DeleteId", id },
+                { "Message", $"Are you sure you want to delete the login record for '{name}'?" }
+            };
+
+          var options = new DialogOptions() { MaxWidth = MaxWidth.Small };
+          var dialog = DialogService.Show<DeleteDialog>("Confirm Delete", parameters, options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+               await FetchTable();
+               currentlyUnmaskedProxy = null; // Reset the unmasked proxy
+          }
+     }
+
+     private bool FilterFunc1(LoginProxy loginProxy) => FilterFunc(loginProxy, searchString1);
+
+     private bool FilterFunc(LoginProxy loginProxy, string searchString)
+     {
+          if (string.IsNullOrWhiteSpace(searchString))
+               return true;
+          if (loginProxy.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+               return true;
+          if (loginProxy.Username.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+               return true;
+          if (loginProxy.URL.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+               return true;
+          return false;
+     }
+
+     private void ToggleUnmask(LoginProxy loginProxy)
+     {
+          if (currentlyUnmaskedProxy != null && currentlyUnmaskedProxy != loginProxy)
+          {
+               // Mask the previously unmasked row
+               currentlyUnmaskedProxy.IsUnmasked = false;
+          }
+
+          if (currentlyUnmaskedProxy == loginProxy)
+          {
+               // If clicking the same row, toggle its state
+               loginProxy.IsUnmasked = !loginProxy.IsUnmasked;
+               if (!loginProxy.IsUnmasked)
+               {
+                    currentlyUnmaskedProxy = null;
+               }
+          }
+          else
+          {
+               // Unmask the new row
+               loginProxy.IsUnmasked = true;
+               currentlyUnmaskedProxy = loginProxy;
+          }
+     }
+
+     private string GetEyeIcon(bool isUnmasked)
+     {
+          return isUnmasked ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+     }
+     
+     private async Task FetchTable()
+     {
+          var logins = await LoginService.GetAllLogins();
+          LoginProxies = logins.Select(login => new LoginProxy(login)).ToList();
+     }
+
+}

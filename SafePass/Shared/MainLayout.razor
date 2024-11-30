@@ -1,7 +1,17 @@
-﻿@inherits LayoutComponentBase
+﻿@using MudBlazor
+@inherits LayoutComponentBase
 
 <PageTitle>SafePass</PageTitle>
 
+@* Required *@
+<MudThemeProvider />
+<MudPopoverProvider />
+
+@* Needed for dialogs *@
+<MudDialogProvider />
+
+@* Needed for snackbars *@
+<MudSnackbarProvider />
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -15,5 +25,6 @@
         <article class="content px-4">
             @Body
         </article>
+
     </main>
 </div>
