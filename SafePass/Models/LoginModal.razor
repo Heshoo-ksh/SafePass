@@ -5,6 +5,7 @@
 @using MudBlazor
 @inject IDialogService DialogService
 @inject LoginService loginService
+@inject ISnackbar Snackbar
 
 <EditForm Model="@login" OnValidSubmit="SaveLogin" OnFieldChanged="ValidateForm">
      <DataAnnotationsValidator />
@@ -21,7 +22,7 @@
                                   InputType="@PasswordInputType"
                                   Adornment="Adornment.End"
                                   AdornmentIcon="@PasswordIcon"
-                                  OnAdornmentClick="TogglePasswordVisibility" />
+                                  OnAdornmentClick="TogglePasswordVisibility"/>
                     <MudButton Class="m-2 " Variant="Variant.Outlined" Color="Color.Primary" OnClick="GeneratePassword">Generate Strong Password</MudButton>
                     <MudTextField Class="p-2" Label="URL" HelperText="Choose a Valid URL" @bind-Value="login.URL" For="@(() => login.URL)" />
                     <ValidationSummary />
@@ -40,14 +41,27 @@
      
      private InputType PasswordInputType = InputType.Password; // Default to password type
      private string PasswordIcon = Icons.Material.Filled.VisibilityOff; // Default to hidden icon
-
+     private PasswordStrengthSubject _passwordSubject = new PasswordStrengthSubject();
+     private string _currentPassword;
 
      protected override void OnInitialized()
      {
+          _passwordSubject.Attach(new PasswordStrengthObserver((message, severity) =>
+          {
+               PasswordStrengthNotifier.ShowNotification(Snackbar, message, severity);
+          }));
+
           if (login == null)
           {
-               login = new Login(); // Create a new instance if none is provided
+               login = new Login();
           }
+          else if (!string.IsNullOrEmpty(login.Password))
+          {
+               // Evaluate existing password for edit scenario
+               _passwordSubject.Notify(login.Password);
+          }
+          _currentPassword = login.Password;
+
      }
 
      private void GeneratePassword()
@@ -60,6 +74,7 @@
               .IncludeSpecialChars();
 
           login.Password = passwordBuilder.Build();
+          _passwordSubject.Notify(login.Password);
      }
 
      private async Task SaveLogin()
@@ -75,7 +90,16 @@
         }
         MudDialog.Close(DialogResult.Ok(true));
     }
-
+     
+     private void HandlePasswordInput(ChangeEventArgs e)
+     {
+          var newValue = e.Value?.ToString();
+          if (newValue != null)
+          {
+               login.Password = newValue;
+               _passwordSubject.Notify(newValue);
+          }
+     }
 
      private void Cancel()
      {
@@ -98,11 +122,16 @@
 
      private bool ValidateForm()
      {
-          // Check if all required fields are filled
-          return  string.IsNullOrWhiteSpace(login.Name) ||
-                           string.IsNullOrWhiteSpace(login.Username) ||
-                           string.IsNullOrWhiteSpace(login.Password) ||
-                           string.IsNullOrWhiteSpace(login.URL);
+          if (login.Password != _currentPassword)
+          {
+               HandlePasswordInput(new ChangeEventArgs { Value = login.Password });
+               _currentPassword = login.Password;
+          }
+
+          return string.IsNullOrWhiteSpace(login.Name) ||
+                 string.IsNullOrWhiteSpace(login.Username) ||
+                 string.IsNullOrWhiteSpace(login.Password) ||
+                 string.IsNullOrWhiteSpace(login.URL);
      }
 }
 
