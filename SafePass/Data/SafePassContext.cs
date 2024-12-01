@@ -11,9 +11,10 @@ namespace SafePass.Data
           public SafePassContext(DbContextOptions<SafePassContext> options)
           : base(options) { }
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<Login> Logins { get; set; }
-        public DbSet<CreditCard> CreditCards { get; set; }
+
+          public DbSet<Login> Logins { get; set; }
+          public DbSet<CreditCard> CreditCards { get; set; }
+          public DbSet<User> Users { get; set; }
 
     }
 }

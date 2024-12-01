@@ -1,44 +1,42 @@
-using SafePass.Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
+using SafePass.Data;
 using SafePass.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
+// Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+// Add MudBlazor services
 builder.Services.AddMudServices();
-builder.Services.AddControllers();
-builder.Services.AddHttpClient();
 
-// Define the unified database file
-var dbFilePath = "Data Source=unified_database.db";
-
-// Configure UnifiedDbContext to use the unified database
-builder.Services.AddDbContextFactory<SafePassContext>(options =>
-    options.UseSqlite(dbFilePath));
-
-// Register application services
 builder.Services.AddTransient<LoginService>();
-builder.Services.AddScoped<UserService>();
+builder.Services.AddTransient<UserService>();
+// Add a DB context factory to the services of our application, which means we can use it as part of dependency injection elsewhere in the app
+builder.Services.AddDbContextFactory<SafePassContext>(opt =>
+    opt.UseSqlite($"Data Source={nameof(SafePassContext.SafePassDb)}.db"));
+
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
+     app.UseExceptionHandler("/Error");
+     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
+
 app.UseRouting();
 
-app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

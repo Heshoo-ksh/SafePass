@@ -73,7 +73,7 @@
 
      private async Task OpenAddModal()
      {
-          var options = new DialogOptions { MaxWidth = MaxWidth.Small, CloseOnEscapeKey = true };
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
           var dialog = DialogService.Show<LoginModal>("Add Login", options);
           var result = await dialog.Result;
 
@@ -89,7 +89,7 @@
             {
                 { "login", ConvertToLogin(loginProxy) } // Pass the undelying Login
             };
-          var options = new DialogOptions { MaxWidth = MaxWidth.Small, CloseOnEscapeKey = true };
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
           var dialog = DialogService.Show<LoginModal>("Edit Login", parameters, options);
           var result = await dialog.Result;
 
