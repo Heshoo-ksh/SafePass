@@ -84,6 +84,7 @@
      }
      private async Task OpenEditModal(LoginProxy loginProxy)
      {
+          loginProxy.IsUnmasked = false;
           ToggleUnmask(loginProxy);
           var parameters = new DialogParameters
             {
