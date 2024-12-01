@@ -10,7 +10,7 @@ using SafePass.Data;
 
 namespace SafePass.Migrations
 {
-    [DbContext(typeof(UnifiedDbContext))]
+    [DbContext(typeof(SafePassContext))]
     [Migration("20241130223845_UnifiedMigration")]
     partial class UnifiedMigration
     {

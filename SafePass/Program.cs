@@ -18,7 +18,7 @@ builder.Services.AddHttpClient();
 var dbFilePath = "Data Source=unified_database.db";
 
 // Configure UnifiedDbContext to use the unified database
-builder.Services.AddDbContextFactory<UnifiedDbContext>(options =>
+builder.Services.AddDbContextFactory<SafePassContext>(options =>
     options.UseSqlite(dbFilePath));
 
 // Register application services

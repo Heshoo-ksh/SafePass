@@ -9,7 +9,7 @@ using SafePass.Data;
 
 namespace SafePass.Migrations
 {
-    [DbContext(typeof(UnifiedDbContext))]
+    [DbContext(typeof(SafePassContext))]
     partial class UnifiedDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

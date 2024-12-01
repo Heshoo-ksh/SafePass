@@ -5,9 +5,9 @@ namespace SafePass.Services
 {
     public class LoginService
     {
-        private readonly IDbContextFactory<UnifiedDbContext> _dbContextFactory;
+        private readonly IDbContextFactory<SafePassContext> _dbContextFactory;
 
-        public LoginService(IDbContextFactory<UnifiedDbContext> dbContextFactory)
+        public LoginService(IDbContextFactory<SafePassContext> dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
         }
