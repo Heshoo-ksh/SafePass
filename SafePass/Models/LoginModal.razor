@@ -22,8 +22,7 @@
                                   InputType="@PasswordInputType"
                                   Adornment="Adornment.End"
                                   AdornmentIcon="@PasswordIcon"
-                                  OnAdornmentClick="TogglePasswordVisibility"
-                                  OnFieldChanged="HandlePasswordInput" />
+                                  OnAdornmentClick="TogglePasswordVisibility"/>
                     <MudButton Class="m-2 " Variant="Variant.Outlined" Color="Color.Primary" OnClick="GeneratePassword">Generate Strong Password</MudButton>
                     <MudTextField Class="p-2" Label="URL" HelperText="Choose a Valid URL" @bind-Value="login.URL" For="@(() => login.URL)" />
                     <ValidationSummary />
