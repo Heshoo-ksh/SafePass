@@ -1,0 +1,93 @@
+﻿@using SafePass.Proxies
+@using SafePass.Data
+@using SafePass.Services
+@using MudBlazor
+@inject IDialogService DialogService
+@inject LoginService loginService
+
+<EditForm Model="@login" OnValidSubmit="SaveLogin" OnFieldChanged="ValidateForm">
+     <DataAnnotationsValidator />
+     <MudItem xs="12">
+          <MudCard>
+               <MudCardContent>
+                    <MudTextField Class="p-2" Label="Name" @bind-Value="login.Name" For="@(() => login.Name)" />
+                    <MudTextField Class="p-2" Label="Username" @bind-Value="login.Username" For="@(() => login.Username)" />
+                    <MudTextField Class="p-2"
+                                  Label="Password"
+                                  HelperText="Choose a strong password"
+                    @bind-Value="login.Password"
+                                  For="@(() => login.Password)"
+                                  InputType="@PasswordInputType"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@PasswordIcon"
+                                  OnAdornmentClick="TogglePasswordVisibility" />
+                    <MudTextField Class="p-2" Label="URL" HelperText="Choose a Valid URL" @bind-Value="login.URL" For="@(() => login.URL)" />
+                    <ValidationSummary />
+               </MudCardContent>
+               <MudCardActions Class="ml-auto">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Disabled="ValidateForm()" Class="me-2">Save</MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+               </MudCardActions>
+          </MudCard>
+     </MudItem>
+</EditForm>
+
+@code {
+     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+     [Parameter] public Login login { get; set; }
+     
+     private InputType PasswordInputType = InputType.Password; // Default to password type
+     private string PasswordIcon = Icons.Material.Filled.VisibilityOff; // Default to hidden icon
+
+
+     protected override void OnInitialized()
+     {
+          if (login == null)
+          {
+               login = new Login(); // Create a new instance if none is provided
+          }
+     }
+
+     private async Task SaveLogin()
+     {
+          if (login.Id == Guid.Empty) // Add
+          {
+               login.Id = Guid.NewGuid(); // Assign a new ID
+               await loginService.CreateLogin(login);
+          }
+          else // Edit
+          {
+               await loginService.UpdateLogin(login);
+          }
+          MudDialog.Close(DialogResult.Ok(true));
+     }
+
+     private void Cancel()
+     {
+          MudDialog.Cancel();
+     }
+
+     private void TogglePasswordVisibility()
+     {
+          if (PasswordInputType == InputType.Password)
+          {
+               PasswordInputType = InputType.Text;
+               PasswordIcon = Icons.Material.Filled.Visibility;
+          }
+          else
+          {
+               PasswordInputType = InputType.Password;
+               PasswordIcon = Icons.Material.Filled.VisibilityOff;
+          }
+     }
+
+     private bool ValidateForm()
+     {
+          // Check if all required fields are filled
+          return  string.IsNullOrWhiteSpace(login.Name) ||
+                           string.IsNullOrWhiteSpace(login.Username) ||
+                           string.IsNullOrWhiteSpace(login.Password) ||
+                           string.IsNullOrWhiteSpace(login.URL);
+     }
+}
+
