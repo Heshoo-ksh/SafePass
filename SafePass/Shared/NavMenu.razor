@@ -1,4 +1,7 @@
-﻿@using MudBlazor
+@using MudBlazor
+@inject SafePass.Services.AuthState AuthState
+@inject NavigationManager NavigationManager
+
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">SafePass</a>
@@ -10,6 +13,7 @@
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     <nav class="flex-column">
+        <!-- Regular Navigation Links -->
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="oi oi-home" aria-hidden="true"></span> Home
@@ -17,11 +21,37 @@
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="loginvault">
-                <MudIcon Icon="@Icons.Material.Filled.VpnKey"  class="me-2" /> Login Vault
+                <MudIcon Icon="@Icons.Material.Filled.VpnKey" class="me-2" /> Login Vault
             </NavLink>
         </div>
+
+        @if (AuthState.IsAuthenticated)
+        {
+            <!-- Logout Button -->
+            <div class="logout-container">
+                <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="HandleLogout" Class="logout-button">
+                    Logout
+                </MudButton>
+            </div>
+        }
     </nav>
 </div>
+
+<style>
+    .logout-container {
+        position: absolute; /* Make the container position relative to its parent */
+        bottom: 20px; /* Move the button 20px up from the bottom of the navbar */
+        left: 50%; /* Horizontally center the button container */
+        transform: translateX(-50%); /* Correct centering offset */
+        width: 100%; /* Ensure the container spans the full width for responsiveness */
+        text-align: center; /* Center-align the button within the container */
+    }
+
+    .logout-button {
+        width: 90%; /* Adjust button width to avoid edge crowding */
+        max-width: 300px; /* Set a maximum width for the button */
+    }
+</style>
 
 @code {
     private bool collapseNavMenu = true;
@@ -31,5 +61,11 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void HandleLogout()
+    {
+        AuthState.LogOut(); // Update authentication state
+        NavigationManager.NavigateTo("/login"); // Redirect to login page
     }
 }

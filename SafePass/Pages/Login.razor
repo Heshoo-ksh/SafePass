@@ -1,55 +1,166 @@
 ﻿@page "/login"
 @using SafePass.Services
 @inject UserService UserService
-@using SafePass.Data
+@inject AuthState AuthState
 @inject NavigationManager NavigationManager
 @using MudBlazor
+@using SafePass.Data
 
-<div style="display: flex; justify-content: center; align-items: center; height: 70vh;">
-    <MudCard Class="pa-4" Style="width: 400px;">
+<div class="login-container">
+    <MudCard Class="login-card pa-6">
         @if (isLoading)
         {
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto my-4" />
         }
 
-        <MudText Typo="Typo.h5" Align="Align.Center" Class="my-6 mx-4 animate__animated animate__fadeIn" Style="font-size: 2.5rem; font-family: 'Dancing Script', cursive;">Welcome Back</MudText>
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="login-header">
+            Welcome Back!
+        </MudText>
 
-
-
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="login-subtext">
+            Please enter your credentials to access your account.
+        </MudText>
 
         <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-            <!-- Username/Email field -->
-            <MudTextField Label="Username/Email" @bind-Value="loginModel.UserName" Required="true" FullWidth="true" Variant="Variant.Filled" Class="mb-3" />
-
-            <!-- Password field -->
-            <MudTextField Label="Password" @bind-Value="loginModel.Password" InputType="InputType.Password" Required="true" FullWidth="true" Variant="Variant.Filled" Class="mb-3" />
-
-            <!-- Login button -->
-            <MudButton Color="Color.Primary" Variant="Variant.Filled" ButtonType="ButtonType.Submit" Class="mt-3" FullWidth="true">Login</MudButton>
+            <MudTextField Label="Username/Email" 
+                          @bind-Value="loginModel.UserName" 
+                          Required="true" 
+                          FullWidth="true" 
+                          Variant="Variant.Filled" 
+                          Class="mb-5 login-input" />
+            <MudTextField Label="Password" 
+                          @bind-Value="loginModel.Password" 
+                          InputType="InputType.Password" 
+                          Required="true" 
+                          FullWidth="true" 
+                          Variant="Variant.Filled" 
+                          Class="mb-5 login-input" />
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" ButtonType="ButtonType.Submit" Class="login-button" FullWidth="true">
+                Login
+            </MudButton>
         </EditForm>
 
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            switch (errorMessage)
-            {
-                case "Invalid username or password.":
-                    <MudAlert Severity="Severity.Warning" Class="mt-3 animate__animated animate__shakeX">Invalid username or password. Please try again.</MudAlert>
-                    break;
-                case var message when message.Contains("An error occurred"):
-                    <MudAlert Severity="Severity.Error" Class="mt-3 animate__animated animate__shakeX">An unexpected error occurred. Please contact support if the issue persists.</MudAlert>
-                    break;
-                default:
-                    <MudAlert Severity="Severity.Info" Class="mt-3 animate__animated animate__fadeIn">@errorMessage</MudAlert>
-                    break;
-            }
+            <MudAlert Severity="Severity.Warning" Class="mt-5">@errorMessage</MudAlert>
         }
 
+        <MudText Typo="Typo.subtitle2" Align="Align.Center" Class="login-link mt-6">
+            Don't have an account? 
+            <MudLink Href="/register" Class="ml-1">Sign up</MudLink>
+        </MudText>
     </MudCard>
 </div>
 
+<style>
+    /* Reset all margins and padding */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    /* Ensure full viewport gradient background */
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        background: linear-gradient(180deg, #6a11cb, #2575fc);
+        position: fixed;
+        overflow: hidden;
+        top: 0;
+        left: 0;
+    }
+
+    /* SVG watermark as repeating background */
+    .login-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('/images/watermark.svg') repeat;
+        background-size: 100px 100px; /* Adjust size of the watermark */
+        opacity: 0.2; /* Make watermark subtle */
+        z-index: 0;
+    }
+
+    /* Card Styling */
+    .login-card {
+        width: 480px;
+        min-height: 420px;
+        padding: 40px;
+        background: white;
+        box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        z-index: 1; /* Ensure card appears above the watermark */
+    }
+
+    .login-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Header Styling */
+    .login-header {
+        font-size: 2.2rem;
+        color: #6a11cb;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    /* Subtext Styling */
+    .login-subtext {
+        font-size: 1rem;
+        color: #555;
+        margin-bottom: 40px;
+    }
+
+    /* Input Fields */
+    .login-input {
+        background-color: #f4f6f8 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Login Button */
+    .login-button {
+        background-color: #6a11cb !important;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-radius: 8px !important;
+        color: white;
+        transition: background-color 0.3s ease;
+    }
+
+    .login-button:hover {
+        background-color: #2575fc !important;
+    }
+
+    /* Link Styling */
+    .login-link {
+        color: #2575fc;
+    }
+
+    .login-link a {
+        text-decoration: underline;
+        font-weight: bold;
+    }
+</style>
 
 @code {
-    private User loginModel = new User();
+    private LoginRequest loginModel = new LoginRequest();
     private string errorMessage = string.Empty;
     private bool isLoading = false;
 
@@ -60,26 +171,21 @@
             isLoading = true;
             errorMessage = null;
 
-            Console.WriteLine("HandleLogin triggered");
-            Console.WriteLine($"Username: {loginModel.UserName}, Password: {loginModel.Password}");
-
             var user = await UserService.ValidateUserAsync(loginModel.UserName, loginModel.Password);
 
             if (user != null)
             {
-                Console.WriteLine("Login successful. Redirecting to /dashboard...");
+                AuthState.LogIn(loginModel.UserName); // Update authentication state
                 NavigationManager.NavigateTo("/dashboard");
             }
             else
             {
-                Console.WriteLine("Login failed: Invalid username or password.");
                 errorMessage = "Invalid username or password.";
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"An error occurred: {ex.Message}";
-            Console.WriteLine($"Exception in HandleLogin: {ex}");
         }
         finally
         {

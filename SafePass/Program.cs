@@ -13,7 +13,7 @@ builder.Services.AddServerSideBlazor();
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
-
+builder.Services.AddScoped<AuthState>();
 builder.Services.AddTransient<LoginService>();
 builder.Services.AddTransient<UserService>();
 // Add a DB context factory to the services of our application, which means we can use it as part of dependency injection elsewhere in the app
