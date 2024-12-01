@@ -16,7 +16,7 @@ namespace SafePass.Data
 
           [Required(ErrorMessage = "Password is required and cannot be empty.")]
           [StringLength(50, ErrorMessage = "Password cannot exceed 50 characters.")]
-
+          [MinLength(12, ErrorMessage = "Password must be at least 12 characters long.")]
           public string? Password { get; set; }
 
           [Required(ErrorMessage = "URL is required and cannot be empty.")]

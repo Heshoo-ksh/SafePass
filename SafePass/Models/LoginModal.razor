@@ -1,5 +1,6 @@
 ﻿@using SafePass.Proxies
 @using SafePass.Data
+@using SafePass.Shared
 @using SafePass.Services
 @using MudBlazor
 @inject IDialogService DialogService
@@ -15,12 +16,13 @@
                     <MudTextField Class="p-2"
                                   Label="Password"
                                   HelperText="Choose a strong password"
-                    @bind-Value="login.Password"
+                                  @bind-Value="login.Password"
                                   For="@(() => login.Password)"
                                   InputType="@PasswordInputType"
                                   Adornment="Adornment.End"
                                   AdornmentIcon="@PasswordIcon"
                                   OnAdornmentClick="TogglePasswordVisibility" />
+                    <MudButton Class="m-2 " Variant="Variant.Outlined" Color="Color.Primary" OnClick="GeneratePassword">Generate Strong Password</MudButton>
                     <MudTextField Class="p-2" Label="URL" HelperText="Choose a Valid URL" @bind-Value="login.URL" For="@(() => login.URL)" />
                     <ValidationSummary />
                </MudCardContent>
@@ -48,7 +50,19 @@
           }
      }
 
-    private async Task SaveLogin()
+     private void GeneratePassword()
+     {
+          var passwordBuilder = new PasswordBuilder()
+              .SetLength(16)
+              .IncludeUppercase()
+              .IncludeLowercase()
+              .IncludeNumbers()
+              .IncludeSpecialChars();
+
+          login.Password = passwordBuilder.Build();
+     }
+
+     private async Task SaveLogin()
     {
         if (login.Id == Guid.Empty) // Add
         {
