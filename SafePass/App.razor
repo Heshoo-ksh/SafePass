@@ -1,7 +1,20 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+﻿@using Microsoft.AspNetCore.Components.Routing
+@using SafePass.Services
+@inject AuthState AuthState
+
+<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        @if (AuthState.IsAuthenticated || 
+             routeData.PageType == typeof(SafePass.Pages.Login) || 
+             routeData.PageType == typeof(SafePass.Pages.Signup))
+        {
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        }
+        else
+        {
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(RedirectLayout)" />
+        }
     </Found>
     <NotFound>
         <PageTitle>Not found</PageTitle>

@@ -23,4 +23,9 @@ namespace SafePass.Data
           [Url(ErrorMessage = "Please enter a valid URL.")]
           public string? URL { get; set; }
      }
+    public class LoginRequest
+    {
+        public string UserName { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
 }
