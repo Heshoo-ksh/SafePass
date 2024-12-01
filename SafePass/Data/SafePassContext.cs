@@ -13,6 +13,7 @@ namespace SafePass.Data
 
           public DbSet<Login> Logins { get; set; }
           public DbSet<CreditCard> CreditCards { get; set; }
+          public DbSet<User> Users { get; set; }
 
      }
 }

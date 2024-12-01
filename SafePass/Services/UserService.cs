@@ -9,9 +9,9 @@ namespace SafePass.Data
 {
     public class UserService
     {
-        private readonly UserContext _context;
+        private readonly SafePassContext _context;
 
-        public UserService(UserContext context)
+        public UserService(SafePassContext context)
         {
             _context = context;
         }
