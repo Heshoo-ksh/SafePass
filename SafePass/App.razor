@@ -1,25 +1,40 @@
 ﻿@using Microsoft.AspNetCore.Components.Routing
 @using SafePass.Services
 @inject AuthState AuthState
+@inject NavigationManager NavigationManager
+@using SafePass.Pages
 
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
-        @if (AuthState.IsAuthenticated || 
-             routeData.PageType == typeof(SafePass.Pages.Login) || 
-             routeData.PageType == typeof(SafePass.Pages.Signup))
+        @if (AuthState.IsAuthenticated || IsPublicPage(routeData.PageType))
         {
             <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         }
         else
         {
-            <RouteView RouteData="@routeData" DefaultLayout="@typeof(RedirectLayout)" />
+            <RedirectToRoute Route="/login" />
         }
     </Found>
     <NotFound>
-        <PageTitle>Not found</PageTitle>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
+            <p>Sorry, there's nothing at this address.</p>
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    private bool IsPublicPage(Type pageType)
+    {
+        var publicPages = new[] { typeof(ForgotPassword), typeof(Login), typeof(Signup) };
+        return publicPages.Contains(pageType);
+    }
+
+    // Redirect to the login page on app startup if no route is matched
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && string.IsNullOrEmpty(NavigationManager.Uri.Replace(NavigationManager.BaseUri, "")))
+        {
+            NavigationManager.NavigateTo("/login", true);
+        }
+    }
+}

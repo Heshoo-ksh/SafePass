@@ -74,6 +74,53 @@ namespace SafePass.Services
             return BCrypt.Net.BCrypt.HashPassword(value);
         }
 
+        public async Task<List<string>> GetSecurityQuestionsAsync(string username)
+{
+    using (var context = _dbContextFactory.CreateDbContext())
+    {
+        var user = await context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.UserName == username);
+
+        if (user == null) throw new Exception("User not found.");
+
+        return new List<string>
+        {
+            user.SecurityQuestion1,
+            user.SecurityQuestion2,
+            user.SecurityQuestion3
+        };
+    }
+}
+
+public async Task<bool> VerifySecurityAnswersAsync(string username, string answer1, string answer2, string answer3)
+{
+    using (var context = _dbContextFactory.CreateDbContext())
+    {
+        var user = await context.Users
+            .FirstOrDefaultAsync(u => u.UserName == username);
+
+        if (user == null) throw new Exception("User not found.");
+
+        return BCrypt.Net.BCrypt.Verify(answer1, user.SecurityAnswer1) &&
+               BCrypt.Net.BCrypt.Verify(answer2, user.SecurityAnswer2) &&
+               BCrypt.Net.BCrypt.Verify(answer3, user.SecurityAnswer3);
+    }
+}
+
+public async Task ResetPasswordAsync(string username, string newPassword)
+{
+    using (var context = _dbContextFactory.CreateDbContext())
+    {
+        var user = await context.Users
+            .FirstOrDefaultAsync(u => u.UserName == username);
+
+        if (user == null) throw new Exception("User not found.");
+
+        user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await context.SaveChangesAsync();
+    }
+}
        
     }
 }
