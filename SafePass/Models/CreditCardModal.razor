@@ -1,0 +1,126 @@
+﻿@using SafePass.Proxies
+@using SafePass.Data
+@using SafePass.Shared
+@using SafePass.Services
+@using MudBlazor
+@inject IDialogService DialogService
+@inject CreditCardService creditCardService
+@inject ISnackbar Snackbar
+
+<EditForm Model="@creditCard" OnValidSubmit="SaveCreditCard">
+     <DataAnnotationsValidator />
+     <MudItem xs="12">
+          <MudCard>
+               <MudCardContent>
+                    <MudTextField Class="p-2" Label="Name" @bind-Value="creditCard.Name" For="@(() => creditCard.Name)" />
+                    <MudTextField Class="p-2" Label="Card Holder Name" @bind-Value="creditCard.CardHolderName" For="@(() => creditCard.CardHolderName)" />
+                    <MudTextField Class="p-2"
+                                  Label="Card Number"
+                    @bind-Value="creditCard.Number"
+                                  For="@(() => creditCard.Number)"
+                                  InputType="@CardNumberInputType"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@CardNumberIcon"
+                                  OnAdornmentClick="ToggleCardNumberVisibility" />
+                    <MudTextField Class="p-2"
+                                  Label="CVV"
+                    @bind-Value="creditCard.CVV"
+                                  For="@(() => creditCard.CVV)"
+                                  InputType="@CVVInputType"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@CVVIcon"
+                                  OnAdornmentClick="ToggleCVVVisibility" />
+                    <MudTextField Class="p-2" Label="Zip Code" @bind-Value="creditCard.ZipCode" For="@(() => creditCard.ZipCode)" />
+                    <MudDatePicker Class="p-2"
+                                   Label="Expiration Date"
+                    @bind-Date="creditCard.ExpirationDate"
+                                   Editable="true"
+                                   Mask="@(new DateMask("MM/yyyy"))" 
+                                   DateFormat="MM/yyyy"
+                                   OpenTo="OpenTo.Year"
+                                    />
+                    <ValidationSummary />
+               </MudCardContent>
+               <MudCardActions Class="ml-auto">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Disabled="@ValidateForm()" Class="me-2">Save</MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+               </MudCardActions>
+          </MudCard>
+     </MudItem>
+</EditForm>
+
+@code {
+     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+     [Parameter] public CreditCard creditCard { get; set; }
+
+     private InputType CardNumberInputType = InputType.Password; // Default to password type to mask the card number
+     private string CardNumberIcon = Icons.Material.Filled.VisibilityOff; // Default to hidden icon for card number
+
+     private InputType CVVInputType = InputType.Password; // Default to password type to mask CVV
+     private string CVVIcon = Icons.Material.Filled.VisibilityOff; // Default to hidden icon for CVV
+
+     protected override void OnInitialized()
+     {
+          if (creditCard == null)
+          {
+               creditCard = new CreditCard();
+          }
+     }
+
+     private async Task SaveCreditCard()
+     {
+          if (creditCard.Id == Guid.Empty) // Add
+          {
+               creditCard.Id = Guid.NewGuid(); // Assign a new ID
+               await creditCardService.CreateCreditCard(creditCard);
+          }
+          else // Edit
+          {
+               await creditCardService.UpdateCreditCard(creditCard);
+          }
+          MudDialog.Close(DialogResult.Ok(true));
+     }
+
+     private void Cancel()
+     {
+          MudDialog.Cancel();
+     }
+
+     private void ToggleCardNumberVisibility()
+     {
+          if (CardNumberInputType == InputType.Password)
+          {
+               CardNumberInputType = InputType.Text;
+               CardNumberIcon = Icons.Material.Filled.Visibility;
+          }
+          else
+          {
+               CardNumberInputType = InputType.Password;
+               CardNumberIcon = Icons.Material.Filled.VisibilityOff;
+          }
+     }
+
+     private void ToggleCVVVisibility()
+     {
+          if (CVVInputType == InputType.Password)
+          {
+               CVVInputType = InputType.Text;
+               CVVIcon = Icons.Material.Filled.Visibility;
+          }
+          else
+          {
+               CVVInputType = InputType.Password;
+               CVVIcon = Icons.Material.Filled.VisibilityOff;
+          }
+     }
+
+     private bool ValidateForm()
+     {
+          return string.IsNullOrWhiteSpace(creditCard.Name) ||
+                 string.IsNullOrWhiteSpace(creditCard.CardHolderName) ||
+                 string.IsNullOrWhiteSpace(creditCard.Number) ||
+                 string.IsNullOrWhiteSpace(creditCard.CVV) ||
+                 string.IsNullOrWhiteSpace(creditCard.ZipCode) ||
+                 creditCard.ExpirationDate == null;
+     }
+}
