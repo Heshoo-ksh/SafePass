@@ -1,0 +1,196 @@
+﻿@page "/CreditCardVault"
+@using SafePass.Proxies
+@using SafePass.Services
+@using MudBlazor
+@using SafePass.Models
+@using SafePass.Data
+@inject CreditCardService CreditCardService
+@inject IDialogService DialogService
+
+<style>
+     .compact-column {
+          width: 50px;
+          text-align: center; /* Horizontally center the content */
+          vertical-align: middle; /* Vertically align the content */
+          padding: 0;
+     }
+</style>
+
+<MudTable Items="@CreditCardProxies" Hover Dense Striped Filter="new Func<CreditCardProxy, bool>(FilterFunc1)">
+     <ToolBarContent>
+          <MudText Typo="Typo.h6">Credit Card Vault</MudText>
+          <MudSpacer />
+          <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 me-3"></MudTextField>
+          <MudButton StartIcon="@Icons.Material.Filled.Add" Class="text-lg font-bold pt-2"
+                     Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddModal">
+               ADD
+          </MudButton>
+     </ToolBarContent>
+
+     <HeaderContent>
+          <MudTh Class="compact-column">Delete</MudTh>
+          <MudTh Class="compact-column">Edit</MudTh>
+          <MudTh Class="compact-column">Mask</MudTh>
+          <MudTh><MudTableSortLabel SortBy="new Func<CreditCardProxy, object>(x => x.Name)">Name</MudTableSortLabel></MudTh>
+          <MudTh>Card Holder</MudTh>
+          <MudTh>Number</MudTh>
+          <MudTh>CVV</MudTh>
+          <MudTh>Zip Code</MudTh>
+          <MudTh>Expiration Date</MudTh>
+     </HeaderContent>
+
+     <RowTemplate>
+          <MudTd>
+               <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Large" OnClick="() => OpenDeleteDialog(context.Id, context.Name)" />
+          </MudTd>
+          <MudTd Class="compact-column">
+               <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenEditModal(context)" />
+          </MudTd>
+          <MudTd>
+               <MudIconButton Icon="@GetEyeIcon(context.IsUnmasked)" Color="Color.Primary" Size="Size.Large" OnClick="() => ToggleUnmask(context)" />
+          </MudTd>
+          <MudTd DataLabel="Name">@context.Name</MudTd>
+          <MudTd DataLabel="Card Holder">@context.CardHolderName</MudTd>
+          <MudTd DataLabel="Number">@context.Number</MudTd>
+          <MudTd DataLabel="CVV">@context.CVV</MudTd>
+          <MudTd DataLabel="Zip Code">@context.ZipCode</MudTd>
+          <MudTd DataLabel="Expiration Date">@context.ExpirationDate?.ToString("MM/yyyy")</MudTd>
+     </RowTemplate>
+
+     <PagerContent>
+          <MudTablePager />
+     </PagerContent>
+</MudTable>
+
+@code {
+     private string searchString = "";
+     private List<CreditCardProxy>
+     CreditCardProxies = new();
+
+     // Keep track of the currently unmasked row
+     private CreditCardProxy? currentlyUnmaskedProxy;
+
+     protected override async Task OnInitializedAsync()
+     {
+     await FetchTable();
+     }
+
+     private async Task OpenAddModal()
+     {
+     var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+     var dialog = DialogService.Show<CreditCardModal>
+          ("Add Credit Card", options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+          await FetchTable();
+          }
+          }
+
+          private async Task OpenEditModal(CreditCardProxy creditCardProxy)
+          {
+          creditCardProxy.IsUnmasked = false;
+          ToggleUnmask(creditCardProxy);
+
+          var parameters = new DialogParameters
+          {
+          { "creditCard", ConvertToCreditCard(creditCardProxy) } // Pass the underlying CreditCard
+          };
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+          var dialog = DialogService.Show<CreditCardModal>
+               ("Edit Credit Card", parameters, options);
+               var result = await dialog.Result;
+
+               if (!result.Canceled)
+               {
+               await FetchTable();
+               }
+               else
+               {
+               ToggleUnmask(creditCardProxy);
+               }
+               }
+
+               public CreditCard ConvertToCreditCard(CreditCardProxy proxy)
+               {
+               return new CreditCard
+               {
+               Id = proxy.Id,
+               Name = proxy.Name,
+               CardHolderName = proxy.CardHolderName,
+               Number = proxy.Number,
+               CVV = proxy.CVV,
+               ZipCode = proxy.ZipCode,
+               ExpirationDate = proxy.ExpirationDate
+               };
+               }
+
+               private async Task OpenDeleteDialog(Guid id, string name)
+               {
+               var parameters = new DialogParameters
+               {
+               { "DeleteId", id },
+               { "Message", $"Are you sure you want to delete the credit card '{name}'?" }
+               };
+
+               var options = new DialogOptions { MaxWidth = MaxWidth.Small };
+               var dialog = DialogService.Show<DeleteDialog>
+                    ("Confirm Delete", parameters, options);
+                    var result = await dialog.Result;
+
+                    if (!result.Canceled)
+                    {
+                    await FetchTable();
+                    currentlyUnmaskedProxy = null; // Reset the unmasked proxy
+                    }
+                    }
+
+                    private bool FilterFunc1(CreditCardProxy creditCardProxy) => FilterFunc(creditCardProxy, searchString);
+
+                    private bool FilterFunc(CreditCardProxy creditCardProxy, string searchString)
+                    {
+                    if (string.IsNullOrWhiteSpace(searchString))
+                    return true;
+
+                    return creditCardProxy.Name?.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true ||
+                    creditCardProxy.CardHolderName?.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true ||
+                    creditCardProxy.Number?.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true;
+                    }
+
+                    private void ToggleUnmask(CreditCardProxy creditCardProxy)
+                    {
+                    if (currentlyUnmaskedProxy != null && currentlyUnmaskedProxy != creditCardProxy)
+                    {
+                    // Mask the previously unmasked row
+                    currentlyUnmaskedProxy.IsUnmasked = false;
+                    }
+
+                    if (currentlyUnmaskedProxy == creditCardProxy)
+                    {
+                    // If clicking the same row, toggle its state
+                    creditCardProxy.IsUnmasked = !creditCardProxy.IsUnmasked;
+                    if (!creditCardProxy.IsUnmasked)
+                    {
+                    currentlyUnmaskedProxy = null;
+                    }
+                    }
+                    else
+                    {
+                    // Unmask the new row
+                    creditCardProxy.IsUnmasked = true;
+                    currentlyUnmaskedProxy = creditCardProxy;
+                    }
+                    }
+
+                    private string GetEyeIcon(bool isUnmasked)
+                    {
+                    return isUnmasked ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+                    }
+
+                    private async Task FetchTable()
+                    {
+                    var creditCards = await CreditCardService.GetAllCreditCards();
+                    CreditCardProxies = creditCards.Select(card => new CreditCardProxy(card)).ToList();
+                    }
+                    }
