@@ -122,7 +122,8 @@
           var parameters = new DialogParameters
             {
                 { "DeleteId", id },
-                { "Message", $"Are you sure you want to delete the login record for '{name}'?" }
+                { "Message", $"Are you sure you want to delete the login record for '{name}'?" },
+                { "DeletionType", "Login" } // Specify the deletion type
             };
 
           var options = new DialogOptions() { MaxWidth = MaxWidth.Small };

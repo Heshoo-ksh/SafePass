@@ -1,8 +1,10 @@
 ﻿@using SafePass.Data
 @using SafePass.Services
+@using SafePass.Models
 @using MudBlazor
 @inject IDialogService DialogService
 @inject LoginService LoginService
+@inject CreditCardService CreditCardService
 
 <MudDialog>
      <DialogContent>
@@ -17,11 +19,19 @@
 @code {
      [CascadingParameter] MudDialogInstance MudDialog { get; set; }
      [Parameter] public Guid DeleteId { get; set; }
-     [Parameter] public string Message { get; set; } 
+     [Parameter] public string Message { get; set; }
+     [Parameter] public string DeletionType { get; set; } 
 
      private async Task DeleteConfirmed()
      {
-          await LoginService.DeleteLogin(DeleteId);
+          if (DeletionType == "Login")
+          {
+               await LoginService.DeleteLogin(DeleteId);
+          }
+          else if (DeletionType == "CreditCard")
+          {
+               await CreditCardService.DeleteCreditCard(DeleteId);
+          }
           MudDialog.Close(DialogResult.Ok(true));
      }
 
