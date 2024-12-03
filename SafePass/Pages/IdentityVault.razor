@@ -1,4 +1,199 @@
-﻿@page
-@model SafePass.Pages.IdentityVaultModel
-@{
+﻿@page "/IdentityVault"
+@using SafePass.Proxies
+@using SafePass.Services
+@using MudBlazor
+@using SafePass.Data
+@using SafePass.Models
+@inject IdentityService IdentityService
+@inject IDialogService DialogService
+
+<style>
+     .compact-column {
+          width: 50px;
+          text-align: center; /* Horizontally center the content */
+          vertical-align: middle; /* Vertically align the content */
+          padding: 0;
+     }
+</style>
+
+<MudTable Items="@IdentityProxies" Hover Dense Striped Filter="new Func<IdentityProxy, bool>(FilterFunc1)">
+     <ToolBarContent>
+          <MudText Typo="Typo.h6">Identity Vault</MudText>
+          <MudSpacer />
+          <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 me-3"></MudTextField>
+          <MudButton StartIcon="@Icons.Material.Filled.Add" Class="text-lg font-bold pt-2"
+                     Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddModal">
+               ADD
+          </MudButton>
+     </ToolBarContent>
+
+     <HeaderContent>
+          <MudTh Class="compact-column">Delete</MudTh>
+          <MudTh Class="compact-column">Edit</MudTh>
+          <MudTh Class="compact-column">Mask</MudTh>
+          <MudTh><MudTableSortLabel SortBy="new Func<IdentityProxy, object>(x => x.HolderName)">Holder Name</MudTableSortLabel></MudTh>
+          <MudTh>ID Number</MudTh>
+          <MudTh>ID Type</MudTh>
+          <MudTh>Expiration Date</MudTh>
+          <MudTh>Issue Date</MudTh>
+          <MudTh>Date of Birth</MudTh>
+          <MudTh>Gender</MudTh>
+          <MudTh>Address</MudTh>
+     </HeaderContent>
+
+     <RowTemplate>
+          <MudTd>
+               <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Large" OnClick="() => OpenDeleteDialog(context.Id, context.HolderName)" />
+          </MudTd>
+          <MudTd Class="compact-column">
+               <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenEditModal(context)" />
+          </MudTd>
+          <MudTd>
+               <MudIconButton Icon="@GetEyeIcon(context.IsUnmasked)" Color="Color.Primary" Size="Size.Large" OnClick="() => ToggleUnmask(context)" />
+          </MudTd>
+          <MudTd DataLabel="Holder Name">@context.HolderName</MudTd>
+          <MudTd DataLabel="ID Number">@context.IDNumber</MudTd>
+          <MudTd DataLabel="ID Type">@context.IDType</MudTd>
+          <MudTd DataLabel="Expiration Date">@context.ExpirationDate?.ToString("MM/dd/yyyy")</MudTd>
+          <MudTd DataLabel="Issue Date">@context.IssueDate?.ToString("MM/dd/yyyy")</MudTd>
+          <MudTd DataLabel="Date of Birth">@context.DateOfBirth?.ToString("MM/dd/yyyy")</MudTd>
+          <MudTd DataLabel="Gender">@context.Gender</MudTd>
+          <MudTd DataLabel="Address">@context.Address</MudTd>
+     </RowTemplate>
+
+     <PagerContent>
+          <MudTablePager />
+     </PagerContent>
+</MudTable>
+
+@code {
+     private string searchString = "";
+     private List<IdentityProxy> IdentityProxies = new();
+
+     // Keep track of the currently unmasked row
+     private IdentityProxy? currentlyUnmaskedProxy;
+
+     protected override async Task OnInitializedAsync()
+     {
+          await FetchTable();
+     }
+
+     private async Task OpenAddModal()
+     {
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+          var dialog = DialogService.Show<IdentityModal>("Add Identity", options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+               await FetchTable();
+          }
+     }
+
+     private async Task OpenEditModal(IdentityProxy identityProxy)
+     {
+          identityProxy.IsUnmasked = false;
+          ToggleUnmask(identityProxy);
+
+          var parameters = new DialogParameters
+          {
+               { "identity", ConvertToIdentity(identityProxy) } // Pass the underlying Identity
+          };
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+          var dialog = DialogService.Show<IdentityModal>("Edit Identity", parameters, options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+               await FetchTable();
+          }
+          else
+          {
+               ToggleUnmask(identityProxy);
+          }
+     }
+
+     public Identity ConvertToIdentity(IdentityProxy proxy)
+     {
+          return new Identity
+               {
+                    Id = proxy.Id,
+                    HolderName = proxy.HolderName,
+                    IDNumber = proxy.IDNumber,
+                    IDType = proxy.IDType,
+                    ExpirationDate = proxy.ExpirationDate,
+                    IssueDate = proxy.IssueDate,
+                    DateOfBirth = proxy.DateOfBirth,
+                    Gender = proxy.Gender,
+                    Address = proxy.Address
+               };
+     }
+
+     private async Task OpenDeleteDialog(Guid id, string holderName)
+     {
+          var parameters = new DialogParameters
+          {
+               { "DeleteId", id },
+               { "Message", $"Are you sure you want to delete the identity of '{holderName}'?" },
+               { "DeletionType", "Identity" } // Specify the deletion type
+          };
+
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small };
+          var dialog = DialogService.Show<DeleteDialog>("Confirm Delete", parameters, options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+               await FetchTable();
+               currentlyUnmaskedProxy = null; // Reset the unmasked proxy
+          }
+     }
+
+     private bool FilterFunc1(IdentityProxy identityProxy) => FilterFunc(identityProxy, searchString);
+
+     private bool FilterFunc(IdentityProxy identityProxy, string searchString)
+     {
+          if (string.IsNullOrWhiteSpace(searchString))
+               return true;
+
+          return identityProxy.HolderName?.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true ||
+                 identityProxy.IDNumber?.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true ||
+                 identityProxy.IDType?.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true;
+     }
+
+     private void ToggleUnmask(IdentityProxy identityProxy)
+     {
+          if (currentlyUnmaskedProxy != null && currentlyUnmaskedProxy != identityProxy)
+          {
+               // Mask the previously unmasked row
+               currentlyUnmaskedProxy.IsUnmasked = false;
+          }
+
+          if (currentlyUnmaskedProxy == identityProxy)
+          {
+               // If clicking the same row, toggle its state
+               identityProxy.IsUnmasked = !identityProxy.IsUnmasked;
+               if (!identityProxy.IsUnmasked)
+               {
+                    currentlyUnmaskedProxy = null;
+               }
+          }
+          else
+          {
+               // Unmask the new row
+               identityProxy.IsUnmasked = true;
+               currentlyUnmaskedProxy = identityProxy;
+          }
+     }
+
+     private string GetEyeIcon(bool isUnmasked)
+     {
+          return isUnmasked ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+     }
+
+     private async Task FetchTable()
+     {
+          var identities = await IdentityService.GetAllIdentities();
+          IdentityProxies = identities.Select(identity => new IdentityProxy(identity)).ToList();
+     }
 }

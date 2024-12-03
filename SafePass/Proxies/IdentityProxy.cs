@@ -20,11 +20,11 @@ namespace SafePass.Proxies
 
           public string IDType => _identity.IDType;
 
-          public DateOnly? ExpirationDate => _identity.ExpirationDate;
+          public DateTime? ExpirationDate => _identity.ExpirationDate;
 
-          public DateOnly? IssueDate => _identity.IssueDate;
+          public DateTime? IssueDate => _identity.IssueDate;
 
-          public DateOnly? DateOfBirth => _identity.DateOfBirth;
+          public DateTime? DateOfBirth => _identity.DateOfBirth;
 
           public string Gender => _identity.Gender;
 

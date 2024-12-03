@@ -13,7 +13,8 @@ namespace SafePass.Data
         public DbSet<Login> Logins { get; set; }
         public DbSet<CreditCard> CreditCards { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Identity> Identities { get; set; }
 
-        // No DbSet for Signup, as it is a frontend validation model
-    }
+          // No DbSet for Signup, as it is a frontend validation model
+     }
 }
