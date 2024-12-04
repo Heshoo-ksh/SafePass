@@ -34,6 +34,9 @@ bld/
 [Ll]ogs/
 
 # Allow the publish folder within bin/Release/net7.0
+!bin/
+!bin/Release/
+!bin/Release/net7.0/
 !bin/Release/net7.0/publish/
 
 # Visual Studio 2015/2017 cache/options directory
