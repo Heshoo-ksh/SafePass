@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Models\Note.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Models\Note.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
 
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 

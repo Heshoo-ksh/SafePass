@@ -1,5 +1,89 @@
-﻿<h3>NoteModal</h3>
+﻿@using SafePass.Proxies
+@using SafePass.Data
+@using SafePass.Shared
+@using SafePass.Services
+@using MudBlazor
+@inject IDialogService DialogService
+@inject NoteService noteService
+@inject ISnackbar Snackbar
+
+<EditForm Model="@note" OnValidSubmit="SaveNote" OnFieldChanged="ValidateForm">
+     <DataAnnotationsValidator />
+     <MudItem xs="12">
+          <MudCard>
+               <MudCardContent>
+                    <MudTextField Class="p-2" Label="Name" @bind-Value="note.Name" For="@(() => note.Name)" />
+                    <MudTextField Class="p-2"
+                                  Label="Content"
+                                  HelperText="Write your note here"
+                    @bind-Value="note.Content"
+                                  For="@(() => note.Content)"
+                                  InputType="@ContentInputType"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@ContentIcon"
+                                  OnAdornmentClick="ToggleContentVisibility"
+                                  />
+                    <ValidationSummary />
+               </MudCardContent>
+               <MudCardActions Class="ml-auto">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Disabled="@ValidateForm()" Class="me-2">Save</MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+               </MudCardActions>
+          </MudCard>
+     </MudItem>
+</EditForm>
 
 @code {
+     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+     [Parameter] public Note note { get; set; }
 
+     private InputType ContentInputType = InputType.Password; // Mask content by default
+     private string ContentIcon = Icons.Material.Filled.VisibilityOff;
+
+     protected override void OnInitialized()
+     {
+          if (note == null)
+          {
+               note = new Note();
+          }
+     }
+
+     private async Task SaveNote()
+     {
+          if (note.Id == Guid.Empty) // Add
+          {
+               note.Id = Guid.NewGuid(); // Assign a new ID
+               await noteService.CreateNote(note);
+          }
+          else // Edit
+          {
+               await noteService.UpdateNote(note);
+          }
+          MudDialog.Close(DialogResult.Ok(true));
+     }
+
+     private void Cancel()
+     {
+          MudDialog.Cancel();
+     }
+
+     private void ToggleContentVisibility()
+     {
+          if (ContentInputType == InputType.Password)
+          {
+               ContentInputType = InputType.Text;
+               ContentIcon = Icons.Material.Filled.Visibility;
+          }
+          else
+          {
+               ContentInputType = InputType.Password;
+               ContentIcon = Icons.Material.Filled.VisibilityOff;
+          }
+     }
+
+     private bool ValidateForm()
+     {
+          return string.IsNullOrWhiteSpace(note.Name) ||
+                 string.IsNullOrWhiteSpace(note.Content);
+     }
 }
