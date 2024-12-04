@@ -28,4 +28,10 @@ namespace SafePass.Data
         public string UserName { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }
+
+    public class SecurityQuestionRequest
+    {
+        public string SubmittedAnswer { get; set; }
+        public string ExpectedAnswerHash { get; set; }
+    }
 }
