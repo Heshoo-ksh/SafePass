@@ -1,0 +1,180 @@
+﻿@page "/NoteVault"
+@using SafePass.Proxies
+@using SafePass.Services
+@using MudBlazor
+@using SafePass.Data
+@using SafePass.Models
+@inject NoteService NoteService
+@inject IDialogService DialogService
+
+<style>
+     .compact-column {
+          width: 50px;
+          text-align: center;
+          vertical-align: middle;
+          padding: 0;
+     }
+</style>
+
+<MudTable Items="@NoteProxies" Hover Dense Striped Filter="new Func<NoteProxy, bool>(FilterFunc1)">
+     <ToolBarContent>
+          <MudText Typo="Typo.h6">Note Vault</MudText>
+          <MudSpacer />
+          <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 me-3"></MudTextField>
+          <MudButton StartIcon="@Icons.Material.Filled.Add" Class="text-lg font-bold pt-2"
+                     Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddModal">
+               ADD
+          </MudButton>
+     </ToolBarContent>
+
+     <HeaderContent>
+          <MudTh Class="compact-column">Delete</MudTh>
+          <MudTh Class="compact-column">Edit</MudTh>
+          <MudTh Class="compact-column">Mask</MudTh>
+          <MudTh>Name</MudTh>
+          <MudTh>Content</MudTh>
+     </HeaderContent>
+
+     <RowTemplate>
+          <MudTd>
+               <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Large" OnClick="() => OpenDeleteDialog(context.Id, context.Name)" />
+          </MudTd>
+          <MudTd Class="compact-column">
+               <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenEditModal(context)" />
+          </MudTd>
+          <MudTd>
+               <MudIconButton Icon="@GetEyeIcon(context.IsUnmasked)" Color="Color.Primary" Size="Size.Large" OnClick="() => ToggleUnmask(context)" />
+          </MudTd>
+          <MudTd DataLabel="Name">@context.Name</MudTd>
+          <MudTd DataLabel="Content">@context.Content</MudTd>
+     </RowTemplate>
+
+     <PagerContent>
+          <MudTablePager />
+     </PagerContent>
+</MudTable>
+
+@code {
+     private string searchString = "";
+     private List<NoteProxy> NoteProxies = new();
+
+     // Keep track of the currently unmasked row
+     private NoteProxy? currentlyUnmaskedProxy;
+
+     protected override async Task OnInitializedAsync()
+     {
+          await FetchTable();
+     }
+
+     private async Task OpenAddModal()
+     {
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+          var dialog = DialogService.Show<NoteModal>("Add Note", options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+               await FetchTable();
+          }
+     }
+
+     private async Task OpenEditModal(NoteProxy noteProxy)
+     {
+          noteProxy.IsUnmasked = false;
+          ToggleUnmask(noteProxy);
+
+          var parameters = new DialogParameters
+          {
+               { "note", ConvertToNote(noteProxy) } // Pass the underlying Note
+          };
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+          var dialog = DialogService.Show<NoteModal>("Edit Note", parameters, options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+               await FetchTable();
+          }
+          else
+          {
+               ToggleUnmask(noteProxy);
+          }
+     }
+
+     public Note ConvertToNote(NoteProxy proxy)
+     {
+          return new Note
+               {
+                    Id = proxy.Id,
+                    Name = proxy.Name,
+                    Content = proxy.Content
+               };
+     }
+
+     private async Task OpenDeleteDialog(Guid id, string name)
+     {
+          var parameters = new DialogParameters
+          {
+               { "DeleteId", id },
+               { "Message", $"Are you sure you want to delete the note '{name}'?" },
+               { "DeletionType", "Note" } // Specify the deletion type
+          };
+
+          var options = new DialogOptions { MaxWidth = MaxWidth.Small };
+          var dialog = DialogService.Show<DeleteDialog>("Confirm Delete", parameters, options);
+          var result = await dialog.Result;
+
+          if (!result.Canceled)
+          {
+               await FetchTable();
+               currentlyUnmaskedProxy = null; // Reset the unmasked proxy
+          }
+     }
+
+     private bool FilterFunc1(NoteProxy noteProxy) => FilterFunc(noteProxy, searchString);
+
+     private bool FilterFunc(NoteProxy noteProxy, string searchString)
+     {
+          if (string.IsNullOrWhiteSpace(searchString))
+               return true;
+
+          return noteProxy.Name?.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true ||
+                 noteProxy.Content?.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true;
+     }
+
+     private void ToggleUnmask(NoteProxy noteProxy)
+     {
+          if (currentlyUnmaskedProxy != null && currentlyUnmaskedProxy != noteProxy)
+          {
+               // Mask the previously unmasked row
+               currentlyUnmaskedProxy.IsUnmasked = false;
+          }
+
+          if (currentlyUnmaskedProxy == noteProxy)
+          {
+               // If clicking the same row, toggle its state
+               noteProxy.IsUnmasked = !noteProxy.IsUnmasked;
+               if (!noteProxy.IsUnmasked)
+               {
+                    currentlyUnmaskedProxy = null;
+               }
+          }
+          else
+          {
+               // Unmask the new row
+               noteProxy.IsUnmasked = true;
+               currentlyUnmaskedProxy = noteProxy;
+          }
+     }
+
+     private string GetEyeIcon(bool isUnmasked)
+     {
+          return isUnmasked ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+     }
+
+     private async Task FetchTable()
+     {
+          var notes = await NoteService.GetAllNotes();
+          NoteProxies = notes.Select(note => new NoteProxy(note)).ToList();
+     }
+}
