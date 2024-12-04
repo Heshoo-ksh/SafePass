@@ -17,6 +17,7 @@ builder.Services.AddScoped<AuthState>();
 builder.Services.AddTransient<LoginService>();
 builder.Services.AddTransient<UserService>();
 builder.Services.AddTransient<CreditCardService>();
+builder.Services.AddTransient<IdentityService>();
 // Add a DB context factory to the services of our application, which means we can use it as part of dependency injection elsewhere in the app
 builder.Services.AddDbContextFactory<SafePassContext>(opt =>
     opt.UseSqlite($"Data Source={nameof(SafePassContext.SafePassDb)}.db"));

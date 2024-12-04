@@ -1,0 +1,139 @@
+﻿@using SafePass.Proxies
+@using SafePass.Data
+@using SafePass.Shared
+@using SafePass.Services
+@using MudBlazor
+@inject IDialogService DialogService
+@inject IdentityService identityService
+@inject ISnackbar Snackbar
+
+<EditForm Model="@identity" OnValidSubmit="@SaveIdentity" OnFieldChanged="ValidateForm">
+     <DataAnnotationsValidator />
+     <MudItem xs="12">
+          <MudCard>
+               <MudCardContent>
+                    <MudTextField Class="p-2" Label="Holder Name" @bind-Value="identity.HolderName" For="@(() => identity.HolderName)" />
+                    <MudTextField Class="p-2"
+                                  Label="ID Number"
+                    @bind-Value="identity.IDNumber"
+                                  For="@(() => identity.IDNumber)"
+                                  InputType="@IDNumberInputType"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@IDNumberIcon"
+                                  OnAdornmentClick="@ToggleIDNumberVisibility" />
+                    <MudTextField Class="p-2" Label="ID Type" @bind-Value="identity.IDType" For="@(() => identity.IDType)" />
+                    <MudDatePicker Class="p-2"
+                                   Label="Expiration Date"
+                    @bind-Date="identity.ExpirationDate"
+                                   DateFormat="MM/dd/yyyy"
+                                   OpenTo="OpenTo.Year" />
+                    <MudDatePicker Class="p-2"
+                                   Label="Issue Date"
+                    @bind-Date="identity.IssueDate"
+                                   DateFormat="MM/dd/yyyy"
+                                   OpenTo="OpenTo.Year" />
+                    <MudDatePicker Class="p-2"
+                                   Label="Date of Birth"
+                    @bind-Date="identity.DateOfBirth"
+                                   DateFormat="MM/dd/yyyy"
+                                   OpenTo="OpenTo.Year" />
+                    <MudSelect T="string" Label="Gender" @bind-Value="identity.Gender" Class="p-2">
+                         <MudSelectItem Value=@("Male")>Male</MudSelectItem>
+                         <MudSelectItem Value="@("Female")">Female</MudSelectItem>
+                    </MudSelect>
+                    <MudTextField Class="p-2"
+                                  Label="Address"
+                    @bind-Value="identity.Address"
+                                  For="@(() => identity.Address)"
+                                  InputType="@AddressInputType"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@AddressIcon"
+                                  OnAdornmentClick="@ToggleAddressVisibility" />
+                    <ValidationSummary />
+               </MudCardContent>
+               <MudCardActions Class="ml-auto">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Disabled="@ValidateForm()" Class="me-2">Save</MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="@Cancel">Cancel</MudButton>
+               </MudCardActions>
+          </MudCard>
+     </MudItem>
+</EditForm>
+
+    @code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public Identity identity { get; set; }
+
+    private InputType IDNumberInputType = InputType.Password; // Mask ID Number by default
+    private string IDNumberIcon = Icons.Material.Filled.VisibilityOff; // Default icon for ID Number
+
+    private InputType AddressInputType = InputType.Password; // Mask Address by default
+    private string AddressIcon = Icons.Material.Filled.VisibilityOff; // Default icon for Address
+
+    protected override void OnInitialized()
+    {
+        if (identity == null)
+        {
+            identity = new Identity();
+        }
+    }
+
+    private async Task SaveIdentity(EditContext editContext)
+    {
+        if (identity.Id == Guid.Empty) // Add
+        {
+            identity.Id = Guid.NewGuid(); // Assign a new ID
+            await identityService.CreateIdentity(identity);
+        }
+        else // Edit
+        {
+            await identityService.UpdateIdentity(identity);
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void ToggleIDNumberVisibility()
+    {
+        if (IDNumberInputType == InputType.Password)
+        {
+            IDNumberInputType = InputType.Text;
+            IDNumberIcon = Icons.Material.Filled.Visibility;
+        }
+        else
+        {
+            IDNumberInputType = InputType.Password;
+            IDNumberIcon = Icons.Material.Filled.VisibilityOff;
+        }
+    }
+
+    private void ToggleAddressVisibility()
+    {
+        if (AddressInputType == InputType.Password)
+        {
+            AddressInputType = InputType.Text;
+            AddressIcon = Icons.Material.Filled.Visibility;
+        }
+        else
+        {
+            AddressInputType = InputType.Password;
+            AddressIcon = Icons.Material.Filled.VisibilityOff;
+        }
+    }
+    private bool ValidateForm()
+    {
+       return string.IsNullOrWhiteSpace(identity.HolderName) ||
+                                   string.IsNullOrWhiteSpace(identity.IDNumber) ||
+                                   string.IsNullOrWhiteSpace(identity.IDType) ||
+                                   identity.ExpirationDate == null ||
+                                   identity.IssueDate == null ||
+                                   identity.DateOfBirth == null ||
+                                   string.IsNullOrWhiteSpace(identity.Gender) ||
+                                   string.IsNullOrWhiteSpace(identity.Address);
+    }
+   }
+
+

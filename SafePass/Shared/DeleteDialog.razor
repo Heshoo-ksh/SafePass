@@ -5,6 +5,7 @@
 @inject IDialogService DialogService
 @inject LoginService LoginService
 @inject CreditCardService CreditCardService
+@inject IdentityService IdentityService
 
 <MudDialog>
      <DialogContent>
@@ -31,6 +32,10 @@
           else if (DeletionType == "CreditCard")
           {
                await CreditCardService.DeleteCreditCard(DeleteId);
+          }
+          else if (DeletionType == "Identity")
+          {
+               await IdentityService.DeleteIdentity(DeleteId);
           }
           MudDialog.Close(DialogResult.Ok(true));
      }
