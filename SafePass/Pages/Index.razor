@@ -1,8 +1,40 @@
 @page "/"
 @using MudBlazor
+@using SafePass.Services
+@using SafePass.Data
+@inject ISnackbar Snackbar
+@inject LoginService loginService
+
+@using DataLogin = SafePass.Data.Login
+
 <PageTitle>Index</PageTitle>
 
 
     <PasswordHealthWidget />
     <!-- Other home page content -->
 
+@code {
+     private PasswordStrengthSubject _passwordSubject = new PasswordStrengthSubject();
+     private List<DataLogin> _logins = new List<DataLogin>();
+
+     protected override async Task OnInitializedAsync()
+     {
+          // Attach the password strength observer
+          _passwordSubject.Attach(new PasswordStrengthObserver((message, severity) =>
+          {
+               PasswordStrengthNotifier.ShowNotification(Snackbar, message, severity);
+          }));
+
+          // Fetch all login records
+          _logins = (await loginService.GetAllLogins()).ToList();
+
+          // Evaluate password strength for each login
+          foreach (var login in _logins)
+          {
+               if (!string.IsNullOrEmpty(login.Password))
+               {
+                    _passwordSubject.Notify(login);
+               }
+          }
+     }
+}

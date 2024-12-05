@@ -186,7 +186,7 @@
                 string authToken = Guid.NewGuid().ToString(); // Optionally generate a token
                 SessionManager.Instance.InitializeSession(user.Id.ToString(), authToken);
                 AuthState.LogIn(loginModel.UserName); // Update authentication state
-                NavigationManager.NavigateTo("/dashboard");
+                NavigationManager.NavigateTo("/");
             }
             else
             {
