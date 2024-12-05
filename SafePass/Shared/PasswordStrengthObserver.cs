@@ -80,11 +80,12 @@ public class PasswordStrengthObserver : IPasswordObserver
                suggestions.Add("Include special characters");
           }
 
-          if (suggestions.Count == 0)
-          {
-               return ($"Login '{loginName}': Strong password!", Severity.Success);
-          }
-          else if (password.Length < 8)
+          //if (suggestions.Count == 0)
+          //{
+          //     return ($"Login '{loginName}': Strong password!", Severity.Success);
+          //}
+           
+          if (password.Length < 8)
           {
                var sentenceSuggestions = string.Join(", ", suggestions.Take(suggestions.Count - 1))
                            + (suggestions.Count > 1 ? ", and " : "")
