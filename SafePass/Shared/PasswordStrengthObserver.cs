@@ -80,12 +80,11 @@ public class PasswordStrengthObserver : IPasswordObserver
                suggestions.Add("Include special characters");
           }
 
-          //if (suggestions.Count == 0)
-          //{
-          //     return ($"Login '{loginName}': Strong password!", Severity.Success);
-          //}
-           
-          if (password.Length < 8)
+          if (suggestions.Count == 0)
+          {
+               return ($"Login '{loginName}': Strong password!", Severity.Success);
+          }
+          else if (password.Length < 8)
           {
                var sentenceSuggestions = string.Join(", ", suggestions.Take(suggestions.Count - 1))
                            + (suggestions.Count > 1 ? ", and " : "")
@@ -109,10 +108,13 @@ public static class PasswordStrengthNotifier
 {
      public static void ShowNotification(ISnackbar snackbar, string message, Severity severity)
      {
-          snackbar.Add(message, severity, config =>
+          if (severity != Severity.Success)
           {
-               config.VisibleStateDuration = 10000; // Display for 10 seconds
-               config.ShowCloseIcon = true;
-          });
+               snackbar.Add(message, severity, config =>
+               {
+                    config.VisibleStateDuration = 10000; // Display for 10 seconds
+                    config.ShowCloseIcon = true;
+               });
+          }
      }
 }

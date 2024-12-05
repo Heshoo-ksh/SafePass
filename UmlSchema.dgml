@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DirectedGraph GraphDirection="LeftToRight" xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="Database" Label="SafePassDb.db" Category="Database" Group="Expanded" />
+    <Node Id="CreditCards" Label="CreditCards" Category="Table" Group="Collapsed" />
+    <Node Id="CreditCards_Id" Label="Id" Category="Field Primary" Description="text" />
+    <Node Id="CreditCards_Name" Label="Name" Category="Field" Description="text" />
+    <Node Id="CreditCards_CardHolderName" Label="CardHolderName" Category="Field" Description="text" />
+    <Node Id="CreditCards_Number" Label="Number" Category="Field" Description="text" />
+    <Node Id="CreditCards_CVV" Label="CVV" Category="Field" Description="text" />
+    <Node Id="CreditCards_ZipCode" Label="ZipCode" Category="Field" Description="text" />
+    <Node Id="CreditCards_ExpirationDate" Label="ExpirationDate" Category="Field" Description="text" />
+    <Node Id="Identities" Label="Identities" Category="Table" Group="Collapsed" />
+    <Node Id="Identities_Id" Label="Id" Category="Field Primary" Description="text" />
+    <Node Id="Identities_HolderName" Label="HolderName" Category="Field" Description="text" />
+    <Node Id="Identities_IDNumber" Label="IDNumber" Category="Field" Description="text" />
+    <Node Id="Identities_IDType" Label="IDType" Category="Field" Description="text" />
+    <Node Id="Identities_ExpirationDate" Label="ExpirationDate" Category="Field" Description="text" />
+    <Node Id="Identities_IssueDate" Label="IssueDate" Category="Field" Description="text" />
+    <Node Id="Identities_DateOfBirth" Label="DateOfBirth" Category="Field" Description="text" />
+    <Node Id="Identities_Gender" Label="Gender" Category="Field" Description="text" />
+    <Node Id="Identities_Address" Label="Address" Category="Field" Description="text" />
+    <Node Id="Logins" Label="Logins" Category="Table" Group="Collapsed" />
+    <Node Id="Logins_Id" Label="Id" Category="Field Primary" Description="text" />
+    <Node Id="Logins_Name" Label="Name" Category="Field" Description="text" />
+    <Node Id="Logins_Username" Label="Username" Category="Field" Description="text" />
+    <Node Id="Logins_Password" Label="Password" Category="Field" Description="text" />
+    <Node Id="Logins_URL" Label="URL" Category="Field" Description="text" />
+    <Node Id="Notes" Label="Notes" Category="Table" Group="Collapsed" />
+    <Node Id="Notes_Id" Label="Id" Category="Field Primary" Description="text" />
+    <Node Id="Notes_Name" Label="Name" Category="Field" Description="text" />
+    <Node Id="Notes_Content" Label="Content" Category="Field" Description="text" />
+    <Node Id="Users" Label="Users" Category="Table" Group="Collapsed" />
+    <Node Id="Users_Id" Label="Id" Category="Field Primary" Description="text" />
+    <Node Id="Users_UserName" Label="UserName" Category="Field" Description="text" />
+    <Node Id="Users_Password" Label="Password" Category="Field" Description="text" />
+    <Node Id="Users_SecurityQuestion1" Label="SecurityQuestion1" Category="Field" Description="text" />
+    <Node Id="Users_SecurityAnswer1" Label="SecurityAnswer1" Category="Field" Description="text" />
+    <Node Id="Users_SecurityQuestion2" Label="SecurityQuestion2" Category="Field" Description="text" />
+    <Node Id="Users_SecurityAnswer2" Label="SecurityAnswer2" Category="Field" Description="text" />
+    <Node Id="Users_SecurityQuestion3" Label="SecurityQuestion3" Category="Field" Description="text" />
+    <Node Id="Users_SecurityAnswer3" Label="SecurityAnswer3" Category="Field" Description="text" />
+  </Nodes>
+  <Links>
+    <Link Source="Database" Target="CreditCards" Category="Contains" />
+    <Link Source="CreditCards" Target="CreditCards_Id" Category="Contains" />
+    <Link Source="CreditCards" Target="CreditCards_Name" Category="Contains" />
+    <Link Source="CreditCards" Target="CreditCards_CardHolderName" Category="Contains" />
+    <Link Source="CreditCards" Target="CreditCards_Number" Category="Contains" />
+    <Link Source="CreditCards" Target="CreditCards_CVV" Category="Contains" />
+    <Link Source="CreditCards" Target="CreditCards_ZipCode" Category="Contains" />
+    <Link Source="CreditCards" Target="CreditCards_ExpirationDate" Category="Contains" />
+    <Link Source="Database" Target="Identities" Category="Contains" />
+    <Link Source="Identities" Target="Identities_Id" Category="Contains" />
+    <Link Source="Identities" Target="Identities_HolderName" Category="Contains" />
+    <Link Source="Identities" Target="Identities_IDNumber" Category="Contains" />
+    <Link Source="Identities" Target="Identities_IDType" Category="Contains" />
+    <Link Source="Identities" Target="Identities_ExpirationDate" Category="Contains" />
+    <Link Source="Identities" Target="Identities_IssueDate" Category="Contains" />
+    <Link Source="Identities" Target="Identities_DateOfBirth" Category="Contains" />
+    <Link Source="Identities" Target="Identities_Gender" Category="Contains" />
+    <Link Source="Identities" Target="Identities_Address" Category="Contains" />
+    <Link Source="Database" Target="Logins" Category="Contains" />
+    <Link Source="Logins" Target="Logins_Id" Category="Contains" />
+    <Link Source="Logins" Target="Logins_Name" Category="Contains" />
+    <Link Source="Logins" Target="Logins_Username" Category="Contains" />
+    <Link Source="Logins" Target="Logins_Password" Category="Contains" />
+    <Link Source="Logins" Target="Logins_URL" Category="Contains" />
+    <Link Source="Database" Target="Notes" Category="Contains" />
+    <Link Source="Notes" Target="Notes_Id" Category="Contains" />
+    <Link Source="Notes" Target="Notes_Name" Category="Contains" />
+    <Link Source="Notes" Target="Notes_Content" Category="Contains" />
+    <Link Source="Database" Target="Users" Category="Contains" />
+    <Link Source="Users" Target="Users_Id" Category="Contains" />
+    <Link Source="Users" Target="Users_UserName" Category="Contains" />
+    <Link Source="Users" Target="Users_Password" Category="Contains" />
+    <Link Source="Users" Target="Users_SecurityQuestion1" Category="Contains" />
+    <Link Source="Users" Target="Users_SecurityAnswer1" Category="Contains" />
+    <Link Source="Users" Target="Users_SecurityQuestion2" Category="Contains" />
+    <Link Source="Users" Target="Users_SecurityAnswer2" Category="Contains" />
+    <Link Source="Users" Target="Users_SecurityQuestion3" Category="Contains" />
+    <Link Source="Users" Target="Users_SecurityAnswer3" Category="Contains" />
+  </Links>
+  <Styles>
+    <Style TargetType="Node" GroupLabel="Table" ValueLabel="True">
+      <Condition Expression="HasCategory('Table')" />
+      <Setter Property="Background" Value="#FFC0C0C0" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Schema" ValueLabel="True">
+      <Condition Expression="HasCategory('Schema')" />
+      <Setter Property="Background" Value="#FF7F9169" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Field Primary" ValueLabel="True">
+      <Condition Expression="HasCategory('Field Primary')" />
+      <Setter Property="Background" Value="#FF008000" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Field Optional" ValueLabel="True">
+      <Condition Expression="HasCategory('Field Optional')" />
+      <Setter Property="Background" Value="#FF808040" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Field Foreign" ValueLabel="True">
+      <Condition Expression="HasCategory('Field Foreign')" />
+      <Setter Property="Background" Value="#FF8080FF" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Field" ValueLabel="True">
+      <Condition Expression="HasCategory('Field')" />
+      <Setter Property="Background" Value="#FFC0A000" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Database" ValueLabel="True">
+      <Condition Expression="HasCategory('Database')" />
+      <Setter Property="Background" Value="#FFFFFFFF" />
+    </Style>
+  </Styles>
+</DirectedGraph>
