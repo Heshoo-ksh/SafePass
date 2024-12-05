@@ -2,18 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using MudBlazor;
+using SafePass.Data;
 
 public interface IPasswordSubject
 {
      void Attach(IPasswordObserver observer);
      void Detach(IPasswordObserver observer);
-     void Notify(string password);
+     void Notify(Login login);
 }
 
 public interface IPasswordObserver
 {
-     void Update(string password);
+     void Update(Login login);
 }
+
 
 public class PasswordStrengthSubject : IPasswordSubject
 {
@@ -29,14 +31,15 @@ public class PasswordStrengthSubject : IPasswordSubject
           _observers.Remove(observer);
      }
 
-     public void Notify(string password)
+     public void Notify(Login login)
      {
           foreach (var observer in _observers)
           {
-               observer.Update(password);
+               observer.Update(login);
           }
      }
 }
+
 
 public class PasswordStrengthObserver : IPasswordObserver
 {
@@ -47,13 +50,13 @@ public class PasswordStrengthObserver : IPasswordObserver
           _onPasswordEvaluation = onPasswordEvaluation;
      }
 
-     public void Update(string password)
+     public void Update(Login login)
      {
-          var (message, severity) = EvaluatePasswordStrength(password);
+          var (message, severity) = EvaluatePasswordStrength(login.Password, login.Name);
           _onPasswordEvaluation(message, severity);
      }
 
-     private (string message, Severity severity) EvaluatePasswordStrength(string password)
+     private (string message, Severity severity) EvaluatePasswordStrength(string password, string loginName)
      {
           var suggestions = new List<string>();
           if (string.IsNullOrEmpty(password) || password.Length < 12)
@@ -79,27 +82,27 @@ public class PasswordStrengthObserver : IPasswordObserver
 
           if (suggestions.Count == 0)
           {
-               return ("Strong password!", Severity.Success);
+               return ($"Login '{loginName}': Strong password!", Severity.Success);
           }
           else if (password.Length < 8)
           {
                var sentenceSuggestions = string.Join(", ", suggestions.Take(suggestions.Count - 1))
                            + (suggestions.Count > 1 ? ", and " : "")
                            + suggestions.Last();
-               var message = $"Very weak password! {sentenceSuggestions}.";
+               var message = $"Login '{loginName}': Very weak password! {sentenceSuggestions}.";
                return (message, Severity.Error);
           }
           else
           {
                var sentenceSuggestions = string.Join(", ", suggestions.Take(suggestions.Count - 1))
-                                          + (suggestions.Count > 1 ? ", and " : "")
-                                          + suggestions.Last();
-               var message = $"Password strength can be improved: {sentenceSuggestions}.";
+                                              + (suggestions.Count > 1 ? ", and " : "")
+                                              + suggestions.Last();
+               var message = $"Login '{loginName}': Password strength can be improved: {sentenceSuggestions}.";
                return (message, Severity.Warning);
-
           }
      }
 }
+
 
 public static class PasswordStrengthNotifier
 {
@@ -109,6 +112,6 @@ public static class PasswordStrengthNotifier
           {
                config.VisibleStateDuration = 10000; // Display for 10 seconds
                config.ShowCloseIcon = true;
-     });
+          });
      }
 }

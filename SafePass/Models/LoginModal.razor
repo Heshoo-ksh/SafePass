@@ -58,7 +58,7 @@
           else if (!string.IsNullOrEmpty(login.Password))
           {
                // Evaluate existing password for edit scenario
-               _passwordSubject.Notify(login.Password);
+               _passwordSubject.Notify(login);
           }
           _currentPassword = login.Password;
 
@@ -74,7 +74,7 @@
               .IncludeSpecialChars();
 
           login.Password = passwordBuilder.Build();
-          _passwordSubject.Notify(login.Password);
+          _passwordSubject.Notify(login);
      }
 
      private async Task SaveLogin()
@@ -97,7 +97,7 @@
           if (newValue != null)
           {
                login.Password = newValue;
-               _passwordSubject.Notify(newValue);
+               _passwordSubject.Notify(login);
           }
      }
 
