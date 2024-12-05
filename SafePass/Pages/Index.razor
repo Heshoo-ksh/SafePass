@@ -4,7 +4,8 @@
 @using SafePass.Data
 @inject ISnackbar Snackbar
 @inject LoginService loginService
-
+@inject CreditCardService CreditCardService
+@inject IdentityService IdentityService
 @using DataLogin = SafePass.Data.Login
 
 <PageTitle>Index</PageTitle>
@@ -16,6 +17,9 @@
 @code {
      private PasswordStrengthSubject _passwordSubject = new PasswordStrengthSubject();
      private List<DataLogin> _logins = new List<DataLogin>();
+     private ExpirationDateSubject _expirationSubject = new ExpirationDateSubject();
+     private List<CreditCard> _creditCards = new List<CreditCard>();
+     private List<Identity> _identities = new List<Identity>();
 
      protected override async Task OnInitializedAsync()
      {
@@ -34,6 +38,38 @@
                if (!string.IsNullOrEmpty(login.Password))
                {
                     _passwordSubject.Notify(login);
+               }
+          }
+          // Attach the expiration date observer
+          _expirationSubject.Attach(new ExpirationDateObserver((message, severity) =>
+          {
+               if (!string.IsNullOrEmpty(message))
+               {
+                    PasswordStrengthNotifier.ShowNotification(Snackbar, message, severity);
+               }
+          }));
+
+          // Fetch all credit cards
+          _creditCards = (await CreditCardService.GetAllCreditCards()).ToList();
+
+          // Evaluate expiration date for each credit card
+          foreach (var card in _creditCards)
+          {
+               if (card.ExpirationDate.HasValue)
+               {
+                    _expirationSubject.Notify(card.Name, card.ExpirationDate.Value.ToString("yyyy-MM-dd"));
+               }
+          }
+
+          // Fetch all identities
+          _identities = (await IdentityService.GetAllIdentities()).ToList();
+
+          // Evaluate expiration date for each identity
+          foreach (var identity in _identities)
+          {
+               if (identity.ExpirationDate.HasValue)
+               {
+                    _expirationSubject.Notify(identity.IDType, identity.ExpirationDate.Value.ToString("yyyy-MM-dd"));
                }
           }
      }
