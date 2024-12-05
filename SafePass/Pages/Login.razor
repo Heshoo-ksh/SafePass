@@ -5,6 +5,9 @@
 @inject NavigationManager NavigationManager
 @using MudBlazor
 @using SafePass.Data
+@using SafePass.Models
+@inject IMediatorService MediatorService
+
 
 <div class="login-container">
     <MudCard Class="login-card pa-6">
@@ -173,6 +176,13 @@
 
             if (user != null)
             {
+                // Calculate the master password health
+                string passwordHealth = user.GetPasswordHealth();
+
+                // Notify the mediator of the password health
+                MediatorService.Notify("PasswordHealthChanged", passwordHealth);
+
+                // Perform login logic
                 string authToken = Guid.NewGuid().ToString(); // Optionally generate a token
                 SessionManager.Instance.InitializeSession(user.Id.ToString(), authToken);
                 AuthState.LogIn(loginModel.UserName); // Update authentication state
@@ -192,6 +202,8 @@
             isLoading = false;
         }
     }
+
+
 
     private void TogglePasswordVisibility()
     {
