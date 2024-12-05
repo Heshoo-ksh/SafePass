@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddSingleton<IMediatorService, MediatorService>();
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
@@ -19,6 +20,7 @@ builder.Services.AddTransient<UserService>();
 builder.Services.AddTransient<CreditCardService>();
 builder.Services.AddTransient<IdentityService>();
 builder.Services.AddTransient<NoteService>();
+
 // Add a DB context factory to the services of our application, which means we can use it as part of dependency injection elsewhere in the app
 builder.Services.AddDbContextFactory<SafePassContext>(opt =>
     opt.UseSqlite($"Data Source={nameof(SafePassContext.SafePassDb)}.db"));

@@ -24,6 +24,8 @@ namespace SafePass.Services
 
                 if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password))
                 {
+                    user.Password = password; // Store the plain-text password temporarily for health check
+
                     return user; // Password matches
                 }
 
@@ -61,6 +63,7 @@ namespace SafePass.Services
                 // Add the new user to the database
                 context.Users.Add(newUser);
                 await context.SaveChangesAsync();
+
 
                 return true;
             }
@@ -121,6 +124,7 @@ public async Task ResetPasswordAsync(string username, string newPassword)
         await context.SaveChangesAsync();
     }
 }
+
        
     }
 }
